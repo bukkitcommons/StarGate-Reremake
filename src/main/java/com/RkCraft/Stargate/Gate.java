@@ -240,7 +240,7 @@ public class Gate
         for (int y = 0; y < this.layout.length; ++y) {
             for (int x = 0; x < this.layout[y].length; ++x) {
                 final Material id = this.types.get(this.layout[y][x]);
-                if (id == -2 || id == -4) {
+                if (id == ENTRANCE || id == EXIT) {
                     if (!Stargate.ignoreEntrance) {
                         final Material type = topleft.modRelative(x, y, 0, modX, 1, modZ).getType();
                         if (!onCreate || type != Material.AIR) {
@@ -257,7 +257,7 @@ public class Gate
                         }
                     }
                 }
-                else if (id != -1) {
+                else if (id != ANYTHING) {
                     if (topleft.modRelative(x, y, 0, modX, 1, modZ).getType() != id) {
                         Stargate.debug("Gate::Matches", "Block Type Mismatch: " + topleft.modRelative(x, y, 0, modX, 1, modZ).getType() + " != " + id);
                         return false;
@@ -426,9 +426,9 @@ public class Gate
         final Material Obsidian = Material.OBSIDIAN;
         final Character[][] layout = { { ' ', 'X', 'X', ' ' }, { 'X', '.', '.', 'X' }, { '-', '.', '.', '-' }, { 'X', '*', '.', 'X' }, { ' ', 'X', 'X', ' ' } };
         final HashMap<Character, Material> types = new HashMap<>();
-        types.put('.', -2);
-        types.put('*', -4);
-        types.put(' ', -1);
+        types.put('.', ENTRANCE);
+        types.put('*', EXIT);
+        types.put(' ', ANYTHING);
         types.put('X', Obsidian);
         types.put('-', Obsidian);
         final HashMap<Character, Integer> metadata = new HashMap<>();
