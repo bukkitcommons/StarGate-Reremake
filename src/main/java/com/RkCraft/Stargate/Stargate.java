@@ -87,7 +87,7 @@ public class Stargate extends JavaPlugin
         this.migrate();
         this.reloadGates();
         if (iConomyHandler.setupeConomy(this.pm) && iConomyHandler.economy != null) {
-            Stargate.log.log(Level.INFO, "[Stargate] Vault found",);
+            Stargate.log.log(Level.INFO, "[Stargate] Vault found");
         }
         this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new SGThread(), 0L, 100L);
         this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new BlockPopulatorThread(), 0L, 1L);
@@ -308,11 +308,11 @@ public class Stargate extends JavaPlugin
     }
     
     public static boolean canSee(final Player player, final Portal portal) {
-        return !portal.isHidden() || (hasPerm(player, "stargate.admin") || hasPerm(player, "stargate.admin.hidden")) || portal.getOwner().equalsIgnoreCase(player.getName());
+        return !portal.isHidden() || (hasPerm(player, "stargate.admin") || hasPerm(player, "stargate.admin.hidden")) || portal.getOwner().getUniqueId().equals(player.getUniqueId());
     }
     
     public static boolean canPrivate(final Player player, final Portal portal) {
-        return portal.getOwner().equalsIgnoreCase(player.getName()) || hasPerm(player, "stargate.admin") || hasPerm(player, "stargate.admin.private");
+        return portal.getOwner().getUniqueId().equals(player.getUniqueId()) || hasPerm(player, "stargate.admin") || hasPerm(player, "stargate.admin.private");
     }
     
     public static boolean canOption(final Player player, final String option) {
@@ -351,7 +351,7 @@ public class Stargate extends JavaPlugin
         if (hasPerm(player, "stargate.destroy.network")) {
             return hasPermDeep(player, "stargate.destroy.network." + network);
         }
-        return hasPerm(player, "stargate.destroy.network." + network) || (player.getName().equalsIgnoreCase(portal.getOwner()) && hasPerm(player, "stargate.destroy.personal"));
+        return hasPerm(player, "stargate.destroy.network." + network) || (player.getUniqueId().equals(portal.getOwner().getUniqueId()) && hasPerm(player, "stargate.destroy.personal"));
     }
     
     public static boolean chargePlayer(final Player player, final OfflinePlayer target, final int cost) {
@@ -368,7 +368,7 @@ public class Stargate extends JavaPlugin
         if (dest != null && !iConomyHandler.chargeFreeDestination && dest.isFree()) {
             return 0;
         }
-        if (src.getGate().getToOwner() && src.getOwner().equalsIgnoreCase(player.getName())) {
+        if (src.getGate().getToOwner() && src.getOwner().getUniqueId().equals(player.getUniqueId())) {
             return 0;
         }
         if (hasPerm(player, "stargate.free") || hasPerm(player, "stargate.free.use")) {
@@ -553,7 +553,7 @@ public class Stargate extends JavaPlugin
                     deductMsg = Stargate.replaceVars(deductMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(cost), portal.getName() });
                     Stargate.sendMessage(player, deductMsg, false);
                     if (target != null) {
-                        final Player p = Stargate.server.getPlayer(target);
+                        final Player p = target.getPlayer();
                         if (p != null) {
                             String obtainedMsg = Stargate.getString("ecoObtain");
                             obtainedMsg = Stargate.replaceVars(obtainedMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(cost), portal.getName() });
@@ -667,7 +667,7 @@ public class Stargate extends JavaPlugin
             }
             final int cost = Stargate.getUseCost(player, portal, destination);
             if (cost > 0) {
-                final String target = portal.getGate().getToOwner() ? portal.getOwner() : null;
+                final OfflinePlayer target = portal.getGate().getToOwner() ? portal.getOwner() : null;
                 if (!Stargate.chargePlayer(player, target, cost)) {
                     Stargate.sendMessage(player, "Insufficient Funds");
                     portal.close(false);
@@ -677,7 +677,7 @@ public class Stargate extends JavaPlugin
                 deductMsg = Stargate.replaceVars(deductMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(cost), portal.getName() });
                 Stargate.sendMessage(player, deductMsg, false);
                 if (target != null) {
-                    final Player p = Stargate.server.getPlayer(target);
+                    final Player p = target.getPlayer();
                     if (p != null) {
                         String obtainedMsg = Stargate.getString("ecoObtain");
                         obtainedMsg = Stargate.replaceVars(obtainedMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(cost), portal.getName() });
@@ -732,7 +732,7 @@ public class Stargate extends JavaPlugin
             final Player player = event.getPlayer();
             Block block = null;
             Label_0047: {
-                if (event.isCancelled() && event.getAction() == Action.RIGHT_CLICK_AIR) {
+                if (event.getAction() == Action.RIGHT_CLICK_AIR && event.useInteractedBlock() == Event.Result.DENY) {
                     try {
                         player.getTargetBlock(null, 5);
                         break Label_0047;
@@ -748,7 +748,7 @@ public class Stargate extends JavaPlugin
             }
             if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) {
                 if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
-                    if (block.getType() == Material.WALL_SIGN) {
+                    if (Tag.WALL_SIGNS.isTagged(block.getType()) ) {
                         final Portal portal = Portal.getByBlock(block);
                         if (portal == null) {
                             return;
@@ -791,7 +791,7 @@ public class Stargate extends JavaPlugin
                 }
                 return;
             }
-            if (block.getType() != Material.WALL_SIGN) {
+            if (Tag.WALL_SIGNS.isTagged(block.getType())) {
                 if (block.getType() == Material.STONE_BUTTON) {
                     final Portal portal = Portal.getByBlock(block);
                     if (portal == null) {
@@ -843,7 +843,7 @@ public class Stargate extends JavaPlugin
             }
             final Player player = event.getPlayer();
             final Block block = event.getBlock();
-            if (block.getType() != Material.WALL_SIGN) {
+            if (Tag.WALL_SIGNS.isTagged(block.getType())) {
                 return;
             }
             final Portal portal = Portal.createPortal(event, player);
@@ -920,10 +920,10 @@ public class Stargate extends JavaPlugin
         public void onBlockPhysics(final BlockPhysicsEvent event) {
             final Block block = event.getBlock();
             Portal portal = null;
-            if (block.getTypeId() == 90) {
+            if (block.getType() == Material.NETHER_PORTAL) {
                 portal = Portal.getByEntrance(block);
             }
-            else if (block.getTypeId() == 77) {
+            else if (block.getType() == Material.STONE_BUTTON) {
                 portal = Portal.getByControl(block);
             }
             if (portal != null) {
@@ -966,10 +966,7 @@ public class Stargate extends JavaPlugin
     {
         @EventHandler
         public void onWorldLoad(final WorldLoadEvent event) {
-            final World w = event.getWorld();
-            if (w.getBlockAt(w.getSpawnLocation()).getWorld() != null) {
-                Portal.loadAllGates(w);
-            }
+            Portal.loadAllGates(event.getWorld());
         }
         
         @EventHandler
@@ -1002,7 +999,7 @@ public class Stargate extends JavaPlugin
                     portal.unregister(true);
                 }
                 else {
-                    Stargate.blockPopulatorQueue.add(new BloxPopulator(new Blox(b), b.getTypeId(), b.getData()));
+                    Stargate.blockPopulatorQueue.add(new BloxPopulator(new Blox(b), b.getType()));
                     event.setCancelled(true);
                 }
             }
@@ -1036,8 +1033,7 @@ public class Stargate extends JavaPlugin
                 if (b == null) {
                     return;
                 }
-                b.getBlox().getBlock().setTypeId(b.getMat());
-                b.getBlox().getBlock().setData(b.getData());
+                b.getBlox().getBlock().setType(b.getMat());
             }
         }
     }
