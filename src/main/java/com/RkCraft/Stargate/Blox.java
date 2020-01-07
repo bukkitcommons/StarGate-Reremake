@@ -60,16 +60,12 @@ public class Blox
         return this.makeRelativeLoc(0.5 + -right * modX + distance * modZ, depth, 0.5 + -right * modZ + -distance * modX, rotX, 0.0f);
     }
     
-    public void setType(final int type) {
-        this.world.getBlockAt(this.x, this.y, this.z).setTypeId(type);
+    public void setType(final Material type) {
+        this.world.getBlockAt(this.x, this.y, this.z).setType(type);
     }
     
-    public int getType() {
-        return this.world.getBlockAt(this.x, this.y, this.z).getTypeId();
-    }
-    
-    public void setData(final int data) {
-        this.world.getBlockAt(this.x, this.y, this.z).setData((byte)data);
+    public Material getType() {
+        return this.world.getBlockAt(this.x, this.y, this.z).getType();
     }
     
     public int getData() {
@@ -110,7 +106,7 @@ public class Blox
         int offsetX = 0;
         int offsetY = 0;
         int offsetZ = 0;
-        if (this.getBlock().getType() == Material.WALL_SIGN) {
+        if (Tag.WALL_SIGNS.isTagged(this.getBlock().getType())) {
             if (this.getData() == 2) {
                 offsetZ = 1;
             }
@@ -125,7 +121,7 @@ public class Blox
             }
         }
         else {
-            if (this.getBlock().getType() != Material.SIGN_POST) {
+            if (Tag.SIGNS.isTagged(this.getBlock().getType())) {
                 return;
             }
             offsetY = -1;
@@ -135,13 +131,11 @@ public class Blox
     
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append(this.x);
-        builder.append(',');
-        builder.append(this.y);
-        builder.append(',');
-        builder.append(this.z);
-        return builder.toString();
+        return String.valueOf(this.x) +
+                ',' +
+                this.y +
+                ',' +
+                this.z;
     }
     
     @Override

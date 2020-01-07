@@ -1,5 +1,7 @@
 package com.RkCraft.Stargate;
 
+import org.bukkit.block.Sign;
+import org.bukkit.block.data.Powerable;
 import org.bukkit.event.*;
 import org.bukkit.material.*;
 import org.bukkit.event.player.*;
@@ -305,7 +307,7 @@ public final class Portal
     
     public boolean open(final Player openFor, boolean force) {
         final StargateOpenEvent event = new StargateOpenEvent(openFor, this, force);
-        Stargate.server.getPluginManager().callEvent((Event)event);
+        Stargate.server.getPluginManager().callEvent(event);
         if (event.isCancelled()) {
             return false;
         }
@@ -341,7 +343,7 @@ public final class Portal
             return;
         }
         final StargateCloseEvent event = new StargateCloseEvent(this, force);
-        Stargate.server.getPluginManager().callEvent((Event)event);
+        Stargate.server.getPluginManager().callEvent(event);
         if (event.isCancelled()) {
             return;
         }
@@ -379,9 +381,10 @@ public final class Portal
         final RelativeBlockVector[] arr$;
         final RelativeBlockVector[] controls = arr$ = this.gate.getControls();
         for (final RelativeBlockVector vector : arr$) {
-            final MaterialData mat = this.getBlockAt(vector).getBlock().getState().getData();
-            if (mat instanceof Button && ((Button)mat).isPowered()) {
-                return true;
+            //final MaterialData mat = this.getBlockAt(vector).getBlock().getState().getData();
+            BlockState state = this.getBlockAt(vector).getBlock().getState();
+            if(state instanceof Powerable){
+                return ((Powerable) state).isPowered();
             }
         }
         return false;
@@ -400,7 +403,7 @@ public final class Portal
         exit.setYaw(origin.getRotation() - traveller.getYaw() + this.getRotation() + adjust);
         if (!origin.equals(this)) {
             final StargatePortalEvent pEvent = new StargatePortalEvent(player, origin, this, exit);
-            Stargate.server.getPluginManager().callEvent((Event)pEvent);
+            Stargate.server.getPluginManager().callEvent(pEvent);
             if (pEvent.isCancelled()) {
                 origin.teleport(player, origin, event);
                 return;
@@ -441,22 +444,23 @@ public final class Portal
             }
         }
         newVelocity.multiply(velocity);
-        final Entity passenger = vehicle.getPassenger();
-        if (passenger != null) {
-            final Vehicle v = (Vehicle)exit.getWorld().spawn(exit, (Class)vehicle.getClass());
+        final List<Entity> passengers = vehicle.getPassengers();
+        if (passengers.isEmpty()) {
+            final Vehicle v = exit.getWorld().spawn(exit, vehicle.getClass());
             vehicle.eject();
             vehicle.remove();
-            passenger.teleport(exit);
-            Stargate.server.getScheduler().scheduleSyncDelayedTask((Plugin)Stargate.stargate, (Runnable)new Runnable() {
+            passengers.forEach((entity -> entity.teleport(exit)));
+            //passengers.teleport(exit);
+            Stargate.server.getScheduler().scheduleSyncDelayedTask(Stargate.stargate, new Runnable() {
                 @Override
                 public void run() {
-                    v.setPassenger(passenger);
+                    passengers.forEach(v::addPassenger);
                     v.setVelocity(newVelocity);
                 }
             }, 1L);
         }
         else {
-            final Vehicle mc = (Vehicle)exit.getWorld().spawn(exit, (Class)vehicle.getClass());
+            final Vehicle mc = (Vehicle)exit.getWorld().spawn(exit, vehicle.getClass());
             if (mc instanceof StorageMinecart) {
                 final StorageMinecart smc = (StorageMinecart)mc;
                 smc.getInventory().setContents(((StorageMinecart)vehicle).getInventory().getContents());
@@ -556,7 +560,7 @@ public final class Portal
             this.destination = this.lastDest;
         }
         final StargateActivateEvent event = new StargateActivateEvent(this, player, this.destinations, this.destination);
-        Stargate.server.getPluginManager().callEvent((Event)event);
+        Stargate.server.getPluginManager().callEvent(event);
         if (event.isCancelled()) {
             Stargate.activeList.remove(this);
             return false;
@@ -569,7 +573,7 @@ public final class Portal
     
     public void deactivate() {
         final StargateDeactivateEvent event = new StargateDeactivateEvent(this);
-        Stargate.server.getPluginManager().callEvent((Event)event);
+        Stargate.server.getPluginManager().callEvent(event);
         if (event.isCancelled()) {
             return;
         }
@@ -602,7 +606,7 @@ public final class Portal
             activate = true;
         }
         if (this.destinations.isEmpty()) {
-            Stargate.sendMessage((CommandSender)player, Stargate.getString("destEmpty"));
+            Stargate.sendMessage(player, Stargate.getString("destEmpty"));
             return;
         }
         if (!Stargate.destMemory || !activate || this.lastDest.isEmpty()) {
@@ -623,7 +627,7 @@ public final class Portal
     
     public final void drawSign() {
         final Material sMat = this.id.getBlock().getType();
-        if (sMat != Material.SIGN && sMat != Material.WALL_SIGN && sMat != Material.SIGN_POST) {
+        if (Tag.SIGNS.isTagged(sMat) || Tag.WALL_SIGNS.isTagged(sMat)) {
             Stargate.log.warning("[Stargate] Sign block is not a Sign object");
             Stargate.debug("Portal::drawSign", "Block: " + this.id.getBlock().getType() + " @ " + this.id.getBlock().getLocation());
             return;
@@ -772,7 +776,7 @@ public final class Portal
                 origin.close(true);
             }
         }
-        if (this.id.getBlock().getType() == Material.WALL_SIGN && this.id.getBlock().getState() instanceof Sign) {
+        if (Tag.WALL_SIGNS.isTagged(this.id.getBlock().getType()) && this.id.getBlock().getState() instanceof Sign) {
             final Sign sign = (Sign)this.id.getBlock().getState();
             sign.setLine(0, this.getName());
             sign.setLine(1, "");
@@ -942,15 +946,15 @@ public final class Portal
         }
         if (bungee) {
             if (!Stargate.enableBungee) {
-                Stargate.sendMessage((CommandSender)player, Stargate.getString("bungeeDisabled"));
+                Stargate.sendMessage(player, Stargate.getString("bungeeDisabled"));
                 return null;
             }
             if (!Stargate.hasPerm(player, "stargate.admin.bungee")) {
-                Stargate.sendMessage((CommandSender)player, Stargate.getString("bungeeDeny"));
+                Stargate.sendMessage(player, Stargate.getString("bungeeDeny"));
                 return null;
             }
             if (destName.isEmpty() || network.isEmpty()) {
-                Stargate.sendMessage((CommandSender)player, Stargate.getString("bungeeEmpty"));
+                Stargate.sendMessage(player, Stargate.getString("bungeeEmpty"));
                 return null;
             }
         }
@@ -968,7 +972,7 @@ public final class Portal
                     network = network.substring(0, 11);
                 }
                 Stargate.debug("createPortal", "Creating personal portal");
-                Stargate.sendMessage((CommandSender)player, Stargate.getString("createPersonal"));
+                Stargate.sendMessage(player, Stargate.getString("createPersonal"));
             }
             else {
                 Stargate.debug("createPortal", "Player does not have access to network");
@@ -998,45 +1002,45 @@ public final class Portal
             final Blox b = topleft.modRelative(v.getRight(), v.getDepth(), v.getDistance(), modX, 1, modZ);
             if (getByBlock(b.getBlock()) != null) {
                 Stargate.debug("createPortal", "Gate conflicts with existing gate");
-                Stargate.sendMessage((CommandSender)player, Stargate.getString("createConflict"));
+                Stargate.sendMessage(player, Stargate.getString("createConflict"));
                 return null;
             }
         }
         Blox button = null;
         Portal portal = null;
-        portal = new Portal(topleft, modX, modZ, rotX, id, button, destName, name, false, network, gate, player.getName(), hidden, alwaysOn, priv, free, backwards, show, noNetwork, random, bungee);
+        portal = new Portal(topleft, modX, modZ, rotX, id, button, destName, name, false, network, gate, player, hidden, alwaysOn, priv, free, backwards, show, noNetwork, random, bungee);
         int cost = Stargate.getCreateCost(player, gate);
         final StargateCreateEvent cEvent = new StargateCreateEvent(player, portal, event.getLines(), deny, denyMsg, cost);
-        Stargate.server.getPluginManager().callEvent((Event)cEvent);
+        Stargate.server.getPluginManager().callEvent(cEvent);
         if (cEvent.isCancelled()) {
             return null;
         }
         if (cEvent.getDeny()) {
-            Stargate.sendMessage((CommandSender)player, cEvent.getDenyReason());
+            Stargate.sendMessage(player, cEvent.getDenyReason());
             return null;
         }
         cost = cEvent.getCost();
         if (portal.getName().length() < 1 || portal.getName().length() > 11) {
             Stargate.debug("createPortal", "Name length error");
-            Stargate.sendMessage((CommandSender)player, Stargate.getString("createNameLength"));
+            Stargate.sendMessage(player, Stargate.getString("createNameLength"));
             return null;
         }
         if (portal.isBungee()) {
             if (Portal.bungeePortals.get(portal.getName().toLowerCase()) != null) {
                 Stargate.debug("createPortal::Bungee", "Gate Exists");
-                Stargate.sendMessage((CommandSender)player, Stargate.getString("createExists"));
+                Stargate.sendMessage(player, Stargate.getString("createExists"));
                 return null;
             }
         }
         else {
             if (getByName(portal.getName(), portal.getNetwork()) != null) {
                 Stargate.debug("createPortal", "Name Error");
-                Stargate.sendMessage((CommandSender)player, Stargate.getString("createExists"));
+                Stargate.sendMessage(player, Stargate.getString("createExists"));
                 return null;
             }
             final ArrayList<String> netList = Portal.allPortalsNet.get(portal.getNetwork().toLowerCase());
             if (Stargate.maxGates > 0 && netList != null && netList.size() >= Stargate.maxGates) {
-                Stargate.sendMessage((CommandSender)player, Stargate.getString("createFull"));
+                Stargate.sendMessage(player, Stargate.getString("createFull"));
                 return null;
             }
         }
@@ -1044,13 +1048,13 @@ public final class Portal
             if (!Stargate.chargePlayer(player, null, cost)) {
                 String inFundMsg = Stargate.getString("ecoInFunds");
                 inFundMsg = Stargate.replaceVars(inFundMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(cost), name });
-                Stargate.sendMessage((CommandSender)player, inFundMsg);
+                Stargate.sendMessage(player, inFundMsg);
                 Stargate.debug("createPortal", "Insufficient Funds");
                 return null;
             }
             String deductMsg = Stargate.getString("ecoDeduct");
             deductMsg = Stargate.replaceVars(deductMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(cost), name });
-            Stargate.sendMessage((CommandSender)player, deductMsg, false);
+            Stargate.sendMessage(player, deductMsg, false);
         }
         if (!alwaysOn) {
             button = topleft.modRelative(buttonVector.getRight(), buttonVector.getDepth(), buttonVector.getDistance() + 1, modX, 1, modZ);
@@ -1179,7 +1183,7 @@ public final class Portal
                 builder.append(portal.isRandom());
                 builder.append(':');
                 builder.append(portal.isBungee());
-                bw.append((CharSequence)builder.toString());
+                bw.append(builder.toString());
                 bw.newLine();
             }
         }
@@ -1360,14 +1364,9 @@ public final class Portal
             return false;
         }
         if (this.network == null) {
-            if (other.network != null) {
-                return false;
-            }
+            return other.network == null;
         }
-        else if (!this.network.equalsIgnoreCase(other.network)) {
-            return false;
-        }
-        return true;
+        else return this.network.equalsIgnoreCase(other.network);
     }
     
     static {

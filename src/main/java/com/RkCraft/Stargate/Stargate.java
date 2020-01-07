@@ -497,10 +497,10 @@ public class Stargate extends JavaPlugin
         Stargate.ignoreEntrance = false;
         Stargate.debug = false;
         Stargate.permDebug = false;
-        Stargate.openList = new ConcurrentLinkedQueue<Portal>();
-        Stargate.activeList = new ConcurrentLinkedQueue<Portal>();
-        Stargate.blockPopulatorQueue = new LinkedList<BloxPopulator>();
-        Stargate.bungeeQueue = new HashMap<String, String>();
+        Stargate.openList = new ConcurrentLinkedQueue<>();
+        Stargate.activeList = new ConcurrentLinkedQueue<>();
+        Stargate.blockPopulatorQueue = new LinkedList<>();
+        Stargate.bungeeQueue = new HashMap<>();
     }
     
     private class vListener implements Listener
