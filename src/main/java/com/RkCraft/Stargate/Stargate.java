@@ -420,9 +420,7 @@ public class Stargate extends JavaPlugin
         return format;
     }
     
-    public void CheckUpdate() {
-        final Updater updater = new Updater(this, 98673, this.getFile(), Updater.UpdateType.DEFAULT, false);
-    }
+
     
     public boolean onCommand(final CommandSender sender, final Command command, final String label, final String[] args) {
         final String cmd = command.getName();
