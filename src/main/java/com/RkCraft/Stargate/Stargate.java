@@ -21,6 +21,8 @@ import org.bukkit.event.world.*;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.server.*;
 
+import static org.bukkit.event.Event.Result.DENY;
+
 public class Stargate extends JavaPlugin
 {
     public static Logger log;
@@ -724,110 +726,126 @@ public class Stargate extends JavaPlugin
             }
             portal.close(false);
         }
-        
+
         @EventHandler
-        public void onPlayerInteract(final PlayerInteractEvent event) {
-            final Player player = event.getPlayer();
+        public void onPlayerInteract(PlayerInteractEvent event) {
+            Player player = event.getPlayer();
             Block block = null;
-            Label_0047: {
-                if (event.getAction() == Action.RIGHT_CLICK_AIR && event.useInteractedBlock() == Event.Result.DENY) {
-                    try {
-                        player.getTargetBlock(null, 5);
-                        break Label_0047;
-                    }
-                    catch (IllegalStateException ex) {
-                        return;
-                    }
+            if (event.isCancelled() && event.getAction() == Action.RIGHT_CLICK_AIR) {
+                try {
+                    block = player.getTargetBlock(null, 5);
+                } catch (IllegalStateException ex) {
+                    // We can safely ignore this exception, it only happens in void or max height
+                    return;
                 }
+            } else {
                 block = event.getClickedBlock();
             }
-            if (block == null) {
-                return;
-            }
-            if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) {
-                if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
-                    if (Tag.WALL_SIGNS.isTagged(block.getType()) ) {
-                        final Portal portal = Portal.getByBlock(block);
-                        if (portal == null) {
-                            return;
-                        }
-                        event.setUseInteractedBlock(Event.Result.DENY);
-                        if (player.getGameMode().equals(GameMode.CREATIVE)) {
-                            event.setCancelled(true);
-                        }
-                        boolean deny = false;
-                        if (!Stargate.canAccessNetwork(player, portal.getNetwork())) {
-                            deny = true;
-                        }
-                        if (!Stargate.canAccessPortal(player, portal, deny)) {
-                            Stargate.sendMessage(player, Stargate.getString("denyMsg"));
-                            return;
-                        }
-                        if (!portal.isOpen() && !portal.isFixed()) {
-                            portal.cycleDestination(player, -1);
-                        }
-                    }
-                    else if (block.getType() == Material.STONE_BUTTON) {
-                        final Portal portal = Portal.getByBlock(block);
-                        if (portal == null) {
-                            return;
-                        }
-                        event.setUseInteractedBlock(Event.Result.DENY);
-                        if (player.getGameMode().equals(GameMode.CREATIVE)) {
-                            event.setCancelled(true);
-                        }
-                        boolean deny = false;
-                        if (!Stargate.canAccessNetwork(player, portal.getNetwork())) {
-                            deny = true;
-                        }
-                        if (!Stargate.canAccessPortal(player, portal, deny)) {
-                            Stargate.sendMessage(player, Stargate.getString("denyMsg"));
-                            return;
-                        }
-                        Stargate.openPortal(player, portal);
-                    }
-                }
-                return;
-            }
-            if (Tag.WALL_SIGNS.isTagged(block.getType())) {
-                if (block.getType() == Material.STONE_BUTTON) {
-                    final Portal portal = Portal.getByBlock(block);
-                    if (portal == null) {
-                        return;
-                    }
+
+            if (block == null) return;
+
+            // Right click
+            if (event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_AIR) {
+                if (Tag.WALL_SIGNS.isTagged(block.getType()) ) {
+                    Portal portal = Portal.getByBlock(block);
+                    if (portal == null) return;
+                    // Cancel item use
                     event.setUseItemInHand(Event.Result.DENY);
                     event.setUseInteractedBlock(Event.Result.DENY);
+
                     boolean deny = false;
                     if (!Stargate.canAccessNetwork(player, portal.getNetwork())) {
                         deny = true;
                     }
+
                     if (!Stargate.canAccessPortal(player, portal, deny)) {
                         Stargate.sendMessage(player, Stargate.getString("denyMsg"));
                         return;
                     }
-                    Stargate.openPortal(player, portal);
+
+                    if ((!portal.isOpen()) && (!portal.isFixed())) {
+                        portal.cycleDestination(player);
+                    }
+                    return;
+                }
+
+                // Implement right-click to toggle a stargate, gets around spawn protection problem.
+                if ((block.getType() == Material.STONE_BUTTON)) {
+                    Portal portal = Portal.getByBlock(block);
+                    if (portal == null) return;
+
+                    // Cancel item use
+                    event.setUseItemInHand(Event.Result.DENY);
+                    event.setUseInteractedBlock(Event.Result.DENY);
+
+                    boolean deny = false;
+                    if (!Stargate.canAccessNetwork(player, portal.getNetwork())) {
+                        deny = true;
+                    }
+
+                    if (!Stargate.canAccessPortal(player, portal, deny)) {
+                        Stargate.sendMessage(player, Stargate.getString("denyMsg"));
+                        return;
+                    }
+
+                    openPortal(player, portal);
                     if (portal.isOpenFor(player)) {
                         event.setUseInteractedBlock(Event.Result.ALLOW);
                     }
                 }
                 return;
             }
-            final Portal portal = Portal.getByBlock(block);
-            if (portal == null) {
-                return;
-            }
-            event.setUseItemInHand(Event.Result.DENY);
-            event.setUseInteractedBlock(Event.Result.DENY);
-            boolean deny = false;
-            if (!Stargate.canAccessNetwork(player, portal.getNetwork())) {
-                deny = true;
-            }
-            if (!Stargate.canAccessPortal(player, portal, deny)) {
-                Stargate.sendMessage(player, Stargate.getString("denyMsg"));
-                return;
-            }
-            if (!portal.isOpen() && !portal.isFixed()) {
-                portal.cycleDestination(player);
+
+            // Left click
+            if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
+                // Check if we're scrolling a sign
+                if (Tag.WALL_SIGNS.isTagged(block.getType())) {
+                    Portal portal = Portal.getByBlock(block);
+                    if (portal == null) return;
+
+                    event.setUseInteractedBlock(Event.Result.DENY);
+                    // Only cancel event in creative mode
+                    if (player.getGameMode().equals(GameMode.CREATIVE)) {
+                        event.setCancelled(true);
+                    }
+
+                    boolean deny = false;
+                    if (!Stargate.canAccessNetwork(player, portal.getNetwork())) {
+                        deny = true;
+                    }
+
+                    if (!Stargate.canAccessPortal(player, portal, deny)) {
+                        Stargate.sendMessage(player, Stargate.getString("denyMsg"));
+                        return;
+                    }
+
+                    if ((!portal.isOpen()) && (!portal.isFixed())) {
+                        portal.cycleDestination(player, -1);
+                    }
+                    return;
+                }
+
+                // Check if we're pushing a button.
+                if (block.getType() == Material.STONE_BUTTON) {
+                    Portal portal = Portal.getByBlock(block);
+                    if (portal == null) return;
+
+                    event.setUseInteractedBlock(Event.Result.DENY);
+                    if (player.getGameMode().equals(GameMode.CREATIVE)) {
+                        event.setCancelled(true);
+                    }
+
+                    boolean deny = false;
+                    if (!Stargate.canAccessNetwork(player, portal.getNetwork())) {
+                        deny = true;
+                    }
+
+                    if (!Stargate.canAccessPortal(player, portal, deny)) {
+                        Stargate.sendMessage(player, Stargate.getString("denyMsg"));
+                        return;
+                    }
+                    openPortal(player, portal);
+                }
             }
         }
     }

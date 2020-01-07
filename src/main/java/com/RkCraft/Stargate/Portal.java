@@ -1308,6 +1308,7 @@ public final class Portal
                 Stargate.log.log(Level.INFO, "[Stargate] '{'{0}'}' Loaded {1} stargates with {2} set as always-on", new Object[] { world.getName(), portalCount, OpenCount });
             }
             catch (Exception e) {
+                e.printStackTrace();
                 Stargate.log.log(Level.SEVERE, "Exception while reading stargates from {0}: {1}", new Object[] { db.getName(), l });
             }
         }

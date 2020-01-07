@@ -363,7 +363,7 @@ public class Gate
 //        }
 
         //final Material Obsidian = Material.OBSIDIAN;
-        final Character[][] layout = { { ' ', 'X', 'X', ' ' }, { 'X', '.', '.', 'X' }, { '-', '.', '.', '-' }, { 'X', '.', '.', 'X' }, { ' ', 'X', 'X', ' ' } };
+        final Character[][] layout = { { ' ', 'X', 'X', ' ' }, { 'X', '.', '.', 'X' }, { '-', '.', '.', '-' }, { 'X', '*', '.', 'X' }, { ' ', 'X', 'X', ' ' } };
         //final HashMap<Character, DataMaterial> types = new HashMap<>();
         //types.put('.', new DataMaterial(ENTRANCE));
         //types.put('*', new DataMaterial(EXIT));
