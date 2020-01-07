@@ -6,6 +6,8 @@ import java.util.*;
 import java.io.*;
 import org.bukkit.block.*;
 
+import javax.xml.crypto.Data;
+
 public class Gate
 {
     public static final int ANYTHING = -1;
@@ -57,7 +59,10 @@ public class Gate
         RelativeBlockVector lastExit = null;
         for (int y = 0; y < this.layout.length; ++y) {
             for (int x = 0; x < this.layout[y].length; ++x) {
-                final DataMaterial id = this.types.get(this.layout[y][x]);
+                DataMaterial id = this.types.get(this.layout[y][x]);
+                if(id == null){
+                    id=new DataMaterial(0);
+                }
                 if (this.layout[y][x] == '-') {
                     controlList.add(new RelativeBlockVector(x, y, 0));
                 }
@@ -175,7 +180,11 @@ public class Gate
     }
     
     public Material getControlBlock() {
-        return this.types.get('-').material;
+        DataMaterial dataMaterial = this.types.get('-');
+        if(dataMaterial == null){
+            dataMaterial = new DataMaterial(Material.AIR);
+        }
+        return dataMaterial.material;
     }
     
     public String getFilename() {
@@ -336,20 +345,29 @@ public class Gate
                 scanner.close();
             }
         }
-        final Character[][] layout = new Character[design.size()][cols];
-        for (int y = 0; y < design.size(); ++y) {
-            final ArrayList<Character> row2 = design.get(y);
-            final Character[] result = new Character[cols];
-            for (int x = 0; x < cols; ++x) {
-                if (x < row2.size()) {
-                    result[x] = row2.get(x);
-                }
-                else {
-                    result[x] = ' ';
-                }
-            }
-            layout[y] = result;
-        }
+//        final Character[][] layout = new Character[design.size()][cols];
+//        for (int y = 0; y < design.size(); ++y) {
+//            final ArrayList<Character> row2 = design.get(y);
+//            final Character[] result = new Character[cols];
+//            for (int x = 0; x < cols; ++x) {
+//                if (x < row2.size()) {
+//                    result[x] = row2.get(x);
+//                }
+//                else {
+//                    result[x] = ' ';
+//                }
+//            }
+//            layout[y] = result;
+//        }
+
+        //final Material Obsidian = Material.OBSIDIAN;
+        final Character[][] layout = { { ' ', 'X', 'X', ' ' }, { 'X', '.', '.', 'X' }, { '-', '.', '.', '-' }, { 'X', '.', '.', 'X' }, { ' ', 'X', 'X', ' ' } };
+        //final HashMap<Character, DataMaterial> types = new HashMap<>();
+        //types.put('.', new DataMaterial(ENTRANCE));
+        //types.put('*', new DataMaterial(EXIT));
+        //types.put(' ', new DataMaterial(ANYTHING));
+        //types.put('X', new DataMaterial(Obsidian));
+       // types.put('-', new DataMaterial(Obsidian));
         final Gate gate = new Gate(file.getName(), layout, types);
         gate.portalBlockOpen = Material.matchMaterial(readConfig(config, gate, file, "portal-open", gate.portalBlockOpen.name()));
         gate.portalBlockClosed = Material.matchMaterial(readConfig(config, gate, file, "portal-closed", gate.portalBlockClosed.name()));

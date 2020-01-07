@@ -187,7 +187,6 @@ public class Stargate extends JavaPlugin
         if (message.isEmpty()) {
             return;
         }
-        //message = message.replaceAll("(&([a-f0-9]))", "¡ì$2");
         message = ChatColor.translateAlternateColorCodes('&',message);
         if (error) {
             player.sendMessage(ChatColor.RED + getString("prefix") + ChatColor.WHITE + message);
@@ -842,7 +841,7 @@ public class Stargate extends JavaPlugin
             }
             final Player player = event.getPlayer();
             final Block block = event.getBlock();
-            if (Tag.WALL_SIGNS.isTagged(block.getType())) {
+            if (!Tag.WALL_SIGNS.isTagged(block.getType())) {
                 return;
             }
             final Portal portal = Portal.createPortal(event, player);
