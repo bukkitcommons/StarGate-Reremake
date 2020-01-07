@@ -1,0 +1,4 @@
+name: StarGate
+version: ${project.version}
+main: com.RkCraft.Stargate.StarGate
+api-version: 1.13
