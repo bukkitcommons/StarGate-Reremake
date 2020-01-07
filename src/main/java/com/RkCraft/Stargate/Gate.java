@@ -24,8 +24,8 @@ public class Gate
     private RelativeBlockVector[] controls;
     private RelativeBlockVector exitBlock;
     private final HashMap<RelativeBlockVector, Integer> exits;
-    private int portalBlockOpen;
-    private int portalBlockClosed;
+    private Material portalBlockOpen;
+    private Material portalBlockClosed;
     private int useCost;
     private int createCost;
     private int destroyCost;
@@ -36,9 +36,9 @@ public class Gate
         this.border = new RelativeBlockVector[0];
         this.controls = new RelativeBlockVector[0];
         this.exitBlock = null;
-        this.exits = new HashMap<RelativeBlockVector, Integer>();
-        this.portalBlockOpen = Material.PORTAL.getId();
-        this.portalBlockClosed = Material.AIR.getId();
+        this.exits = new HashMap<>();
+        this.portalBlockOpen = Material.NETHER_PORTAL;
+        this.portalBlockClosed = Material.AIR;
         this.useCost = -1;
         this.createCost = -1;
         this.destroyCost = -1;
@@ -51,9 +51,9 @@ public class Gate
     }
     
     private void populateCoordinates() {
-        final ArrayList<RelativeBlockVector> entranceList = new ArrayList<RelativeBlockVector>();
-        final ArrayList<RelativeBlockVector> borderList = new ArrayList<RelativeBlockVector>();
-        final ArrayList<RelativeBlockVector> controlList = new ArrayList<RelativeBlockVector>();
+        final ArrayList<RelativeBlockVector> entranceList = new ArrayList<>();
+        final ArrayList<RelativeBlockVector> borderList = new ArrayList<>();
+        final ArrayList<RelativeBlockVector> controlList = new ArrayList<>();
         final RelativeBlockVector[] relativeExits = new RelativeBlockVector[this.layout[0].length];
         final int[] exitDepths = new int[this.layout[0].length];
         RelativeBlockVector lastExit = null;
@@ -96,8 +96,8 @@ public class Gate
     
     public void save(final String gateFolder) {
         try (final BufferedWriter bw = new BufferedWriter(new FileWriter(gateFolder + this.filename))) {
-            this.writeConfig(bw, "portal-open", this.portalBlockOpen);
-            this.writeConfig(bw, "portal-closed", this.portalBlockClosed);
+            this.writeConfig(bw, "portal-open", String.valueOf(this.portalBlockOpen));
+            this.writeConfig(bw, "portal-closed", String.valueOf(this.portalBlockClosed));
             if (this.useCost != -1) {
                 this.writeConfig(bw, "usecost", this.useCost);
             }
@@ -113,13 +113,13 @@ public class Gate
                 if (value < 0) {
                     continue;
                 }
-                bw.append((char)type);
+                bw.append(type);
                 bw.append('=');
-                bw.append((CharSequence)value.toString());
+                bw.append(value.toString());
                 final Integer mData = this.metadata.get(type);
                 if (mData != null) {
                     bw.append(':');
-                    bw.append((CharSequence)mData.toString());
+                    bw.append(mData.toString());
                 }
                 bw.newLine();
             }
@@ -127,7 +127,7 @@ public class Gate
             for (final Character[] arr$2 : this.layout) {
                 final Character[] layout1 = arr$2;
                 for (final Character symbol : arr$2) {
-                    bw.append((char)symbol);
+                    bw.append(symbol);
                 }
                 bw.newLine();
             }
@@ -137,13 +137,13 @@ public class Gate
         }
     }
     
-    private void writeConfig(final BufferedWriter bw, final String key, final int value) throws IOException {
-        bw.append((CharSequence)String.format("%s=%d", key, value));
+    private void writeConfig(final BufferedWriter bw, final String key, final String  value) throws IOException {
+        bw.append(String.format("%s=%s", key, value));
         bw.newLine();
     }
     
     private void writeConfig(final BufferedWriter bw, final String key, final boolean value) throws IOException {
-        bw.append((CharSequence)String.format("%s=%b", key, value));
+        bw.append(String.format("%s=%b", key, value));
         bw.newLine();
     }
     
@@ -187,19 +187,19 @@ public class Gate
         return this.filename;
     }
     
-    public int getPortalBlockOpen() {
+    public Material getPortalBlockOpen() {
         return this.portalBlockOpen;
     }
     
-    public void setPortalBlockOpen(final int type) {
+    public void setPortalBlockOpen(final Material type) {
         this.portalBlockOpen = type;
     }
     
-    public int getPortalBlockClosed() {
+    public Material getPortalBlockClosed() {
         return this.portalBlockClosed;
     }
     
-    public void setPortalBlockClosed(final int type) {
+    public void setPortalBlockClosed(final Material type) {
         this.portalBlockClosed = type;
     }
     
@@ -235,25 +235,19 @@ public class Gate
     public boolean matches(final Blox topleft, final int modX, final int modZ, final boolean onCreate) {
         for (int y = 0; y < this.layout.length; ++y) {
             for (int x = 0; x < this.layout[y].length; ++x) {
-                final int id = this.types.get(this.layout[y][x]);
+                final Material id = this.types.get(this.layout[y][x]);
                 if (id == -2 || id == -4) {
                     if (!Stargate.ignoreEntrance) {
-                        final int type = topleft.modRelative(x, y, 0, modX, 1, modZ).getType();
-                        if (!onCreate || type != Material.AIR.getId()) {
+                        final Material type = topleft.modRelative(x, y, 0, modX, 1, modZ).getType();
+                        if (!onCreate || type != Material.AIR) {
                             if (type != this.portalBlockClosed && type != this.portalBlockOpen) {
-                                if (this.portalBlockOpen == Material.WATER.getId() || this.portalBlockOpen == Material.STATIONARY_WATER.getId()) {
-                                    if (type == Material.WATER.getId()) {
-                                        continue;
-                                    }
-                                    if (type == Material.STATIONARY_WATER.getId()) {
+                                if (this.portalBlockOpen == Material.WATER) {
+                                    if (type == Material.WATER) {
                                         continue;
                                     }
                                 }
-                                if (this.portalBlockOpen == Material.LAVA.getId() || this.portalBlockOpen == Material.STATIONARY_LAVA.getId()) {
-                                    if (type == Material.LAVA.getId()) {
-                                        continue;
-                                    }
-                                    if (type == Material.STATIONARY_LAVA.getId()) {
+                                if (this.portalBlockOpen == Material.LAVA) {
+                                    if (type == Material.LAVA) {
                                         continue;
                                     }
                                 }
@@ -283,7 +277,7 @@ public class Gate
         Gate.gates.put(gate.getFilename(), gate);
         final int blockID = gate.getControlBlock();
         if (!Gate.controlBlocks.containsKey(blockID)) {
-            Gate.controlBlocks.put(blockID, new ArrayList<Gate>());
+            Gate.controlBlocks.put(blockID, new ArrayList<>());
         }
         Gate.controlBlocks.get(blockID).add(gate);
     }
@@ -291,11 +285,11 @@ public class Gate
     public static Gate loadGate(final File file) {
         Scanner scanner = null;
         boolean designing = false;
-        final ArrayList<ArrayList<Character>> design = new ArrayList<ArrayList<Character>>();
-        final HashMap<Character, Integer> types = new HashMap<Character, Integer>();
-        final HashMap<Character, Integer> metadata = new HashMap<Character, Integer>();
-        final HashMap<String, String> config = new HashMap<String, String>();
-        final HashSet<Integer> frameTypes = new HashSet<Integer>();
+        final ArrayList<ArrayList<Character>> design = new ArrayList<>();
+        final HashMap<Character, Integer> types = new HashMap<>();
+        final HashMap<Character, Integer> metadata = new HashMap<>();
+        final HashMap<String, String> config = new HashMap<>();
+        final HashSet<Integer> frameTypes = new HashSet<>();
         int cols = 0;
         types.put('.', -2);
         types.put('*', -4);
@@ -305,7 +299,7 @@ public class Gate
             while (scanner.hasNextLine()) {
                 final String line = scanner.nextLine();
                 if (designing) {
-                    final ArrayList<Character> row = new ArrayList<Character>();
+                    final ArrayList<Character> row = new ArrayList<>();
                     if (line.length() > cols) {
                         cols = line.length();
                     }
@@ -343,7 +337,7 @@ public class Gate
                 }
             }
         }
-        catch (FileNotFoundException ex2) {}
+        catch (FileNotFoundException ignored) {}
         catch (NumberFormatException ex) {
             Stargate.log.log(Level.SEVERE, "Could not load Gate {0} - Invalid block ID given", file.getName());
             return null;
@@ -368,8 +362,8 @@ public class Gate
             layout[y] = result;
         }
         final Gate gate = new Gate(file.getName(), layout, types, metadata);
-        gate.portalBlockOpen = readConfig(config, gate, file, "portal-open", gate.portalBlockOpen);
-        gate.portalBlockClosed = readConfig(config, gate, file, "portal-closed", gate.portalBlockClosed);
+        gate.portalBlockOpen = Material.matchMaterial(readConfig(config, gate, file, "portal-open", gate.portalBlockOpen.name()));
+        gate.portalBlockClosed = Material.matchMaterial(readConfig(config, gate, file, "portal-closed", gate.portalBlockClosed.name()));
         gate.useCost = readConfig(config, gate, file, "usecost", -1);
         gate.destroyCost = readConfig(config, gate, file, "destroycost", -1);
         gate.createCost = readConfig(config, gate, file, "createcost", -1);
@@ -383,18 +377,17 @@ public class Gate
         return gate;
     }
     
-    private static int readConfig(final HashMap<String, String> config, final Gate gate, final File file, final String key, final int def) {
+    private static String readConfig(final HashMap<String, String> config, final Gate gate, final File file, final String key, final String def) {
         if (config.containsKey(key)) {
             try {
-                return Integer.parseInt(config.get(key));
+                return config.get(key);
             }
             catch (NumberFormatException ex) {
-                Stargate.log.log(Level.WARNING, String.format("%s reading %s: %s is not numeric", ex.getClass().getName(), file, key));
+                Stargate.log.log(Level.WARNING, String.format("%s reading %s: %s is not string", ex.getClass().getName(), file, key));
             }
         }
         return def;
     }
-    
     public static void loadGates(final String gateFolder) {
         final File dir = new File(gateFolder);
         File[] files;
@@ -421,20 +414,20 @@ public class Gate
     public static void populateDefaults(final String gateFolder) {
         final int Obsidian = Material.OBSIDIAN.getId();
         final Character[][] layout = { { ' ', 'X', 'X', ' ' }, { 'X', '.', '.', 'X' }, { '-', '.', '.', '-' }, { 'X', '*', '.', 'X' }, { ' ', 'X', 'X', ' ' } };
-        final HashMap<Character, Integer> types = new HashMap<Character, Integer>();
+        final HashMap<Character, Integer> types = new HashMap<>();
         types.put('.', -2);
         types.put('*', -4);
         types.put(' ', -1);
         types.put('X', Obsidian);
         types.put('-', Obsidian);
-        final HashMap<Character, Integer> metadata = new HashMap<Character, Integer>();
+        final HashMap<Character, Integer> metadata = new HashMap<>();
         final Gate gate = new Gate("nethergate.gate", layout, types, metadata);
         gate.save(gateFolder);
         registerGate(gate);
     }
     
     public static Gate[] getGatesByControlBlock(final Block block) {
-        return getGatesByControlBlock(block.getTypeId());
+        return getGatesByControlBlock(block);
     }
     
     public static Gate[] getGatesByControlBlock(final int type) {
@@ -465,9 +458,9 @@ public class Gate
     }
     
     static {
-        gates = new HashMap<String, Gate>();
-        controlBlocks = new HashMap<Integer, ArrayList<Gate>>();
-        frameBlocks = new HashSet<Integer>();
+        gates = new HashMap<>();
+        controlBlocks = new HashMap<>();
+        frameBlocks = new HashSet<>();
     }
     
     static class StargateFilenameFilter implements FilenameFilter
