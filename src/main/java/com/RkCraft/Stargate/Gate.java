@@ -59,18 +59,18 @@ public class Gate
         RelativeBlockVector lastExit = null;
         for (int y = 0; y < this.layout.length; ++y) {
             for (int x = 0; x < this.layout[y].length; ++x) {
-                final Material id = this.types.get(this.layout[y][x]);
+                final int id = this.types.get(this.layout[y][x]);
                 if (this.layout[y][x] == '-') {
                     controlList.add(new RelativeBlockVector(x, y, 0));
                 }
-                if (id == -2 || id == -4) {
+                if (id == ENTRANCE || id == EXIT) {
                     entranceList.add(new RelativeBlockVector(x, y, 0));
                     exitDepths[x] = y;
-                    if (id == -4) {
+                    if (id == EXIT) {
                         this.exitBlock = new RelativeBlockVector(x, y, 0);
                     }
                 }
-                else if (id != -1) {
+                else if (id != ANYTHING) {
                     borderList.add(new RelativeBlockVector(x, y, 0));
                 }
             }
