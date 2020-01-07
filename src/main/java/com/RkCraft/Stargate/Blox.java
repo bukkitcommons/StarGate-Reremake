@@ -106,9 +106,6 @@ public class Blox
     }
     
     private void findParent() {
-        int offsetX = 0;
-        int offsetY = 0;
-        int offsetZ = 0;
         org.bukkit.block.data.Directional directional = (org.bukkit.block.data.Directional) this.getBlock().getBlockData();
         Location location = this.getBlock().getRelative(directional.getFacing().getOppositeFace()).getLocation();
         this.parent = new Blox(this.world,location.getBlockX(),location.getBlockY(),location.getBlockZ());

@@ -1055,6 +1055,7 @@ public class Stargate extends JavaPlugin
                     return;
                 }
                 b.getKey().getBlox().getBlock().setType(b.getKey().getMat());
+
                 if(b.getValue() != null){
                     if(b.getKey().getBlox().getBlock().getBlockData() instanceof Orientable){
                         Block block = b.getKey().getBlox().getBlock();
