@@ -408,9 +408,9 @@ public class Gate
     }
     
     public static void populateDefaults(final String gateFolder) {
-        final int Obsidian = Material.OBSIDIAN.getId();
+        final Material Obsidian = Material.OBSIDIAN;
         final Character[][] layout = { { ' ', 'X', 'X', ' ' }, { 'X', '.', '.', 'X' }, { '-', '.', '.', '-' }, { 'X', '*', '.', 'X' }, { ' ', 'X', 'X', ' ' } };
-        final HashMap<Character, Integer> types = new HashMap<>();
+        final HashMap<Character, Material> types = new HashMap<>();
         types.put('.', -2);
         types.put('*', -4);
         types.put(' ', -1);

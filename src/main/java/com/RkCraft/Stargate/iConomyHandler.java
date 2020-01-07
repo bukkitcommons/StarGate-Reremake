@@ -10,6 +10,7 @@ import java.util.UUID;
 public class iConomyHandler
 {
     public static boolean useiConomy;
+    public static Plugin vault;
     public static Economy economy;
     public static int useCost;
     public static int createCost;
@@ -18,7 +19,7 @@ public class iConomyHandler
     public static boolean chargeFreeDestination;
     public static boolean freeGatesGreen;
     
-    public static double getBalance(final String player) {
+    public static double getBalance(final OfflinePlayer player) {
         if (!iConomyHandler.useiConomy) {
             return 0.0;
         }
@@ -54,7 +55,7 @@ public class iConomyHandler
     
     public static String format(final int amt) {
         if (iConomyHandler.economy != null) {
-            return iConomyHandler.economy.format((double)amt);
+            return iConomyHandler.economy.format(amt);
         }
         return "";
     }
@@ -77,8 +78,9 @@ public class iConomyHandler
         if (!p.getDescription().getName().equals("Vault")) {
             return false;
         }
-        final RegisteredServiceProvider<Economy> economyProvider = (RegisteredServiceProvider<Economy>)Stargate.server.getServicesManager().getRegistration((Class)Economy.class);
+        final RegisteredServiceProvider<Economy> economyProvider = Stargate.server.getServicesManager().getRegistration(Economy.class);
         if (economyProvider != null) {
+            iConomyHandler.vault = p;
             iConomyHandler.economy = economyProvider.getProvider();
         }
         return iConomyHandler.economy != null;
@@ -91,6 +93,7 @@ public class iConomyHandler
     public static boolean checkLost(final Plugin p) {
         if (p.equals(iConomyHandler.vault)) {
             iConomyHandler.economy = null;
+            iConomyHandler.vault = null;
             return true;
         }
         return false;
@@ -98,6 +101,7 @@ public class iConomyHandler
     
     static {
         iConomyHandler.useiConomy = false;
+        iConomyHandler.vault = null;
         iConomyHandler.economy = null;
         iConomyHandler.useCost = 0;
         iConomyHandler.createCost = 0;
