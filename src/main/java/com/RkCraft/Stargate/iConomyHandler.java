@@ -1,6 +1,5 @@
 package com.RkCraft.Stargate;
 
-import net.milkbowl.vault.*;
 import net.milkbowl.vault.economy.*;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.*;

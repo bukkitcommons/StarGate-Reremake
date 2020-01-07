@@ -187,7 +187,8 @@ public class Stargate extends JavaPlugin
         if (message.isEmpty()) {
             return;
         }
-        message = message.replaceAll("(&([a-f0-9]))", "¡ì$2");
+        //message = message.replaceAll("(&([a-f0-9]))", "¡ì$2");
+        message = ChatColor.translateAlternateColorCodes('&',message);
         if (error) {
             player.sendMessage(ChatColor.RED + getString("prefix") + ChatColor.WHITE + message);
         }

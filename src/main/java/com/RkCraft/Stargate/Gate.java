@@ -17,7 +17,7 @@ public class Gate
     private static final HashSet<Material> frameBlocks;
     private final String filename;
     private final Character[][] layout;
-    private final HashMap<Character, Material> types;
+    private final HashMap<Character, DataMaterial> types;
     private RelativeBlockVector[] entrances;
     private RelativeBlockVector[] border;
     private RelativeBlockVector[] controls;
@@ -30,7 +30,7 @@ public class Gate
     private int destroyCost;
     private boolean toOwner;
     
-    public Gate(final String filename, final Character[][] layout, final HashMap<Character, Material> types) {
+    public Gate(final String filename, final Character[][] layout, final HashMap<Character, DataMaterial> types) {
         this.entrances = new RelativeBlockVector[0];
         this.border = new RelativeBlockVector[0];
         this.controls = new RelativeBlockVector[0];
@@ -57,18 +57,19 @@ public class Gate
         RelativeBlockVector lastExit = null;
         for (int y = 0; y < this.layout.length; ++y) {
             for (int x = 0; x < this.layout[y].length; ++x) {
-                final int id = this.types.get(this.layout[y][x]);
+                final DataMaterial id = this.types.get(this.layout[y][x]);
                 if (this.layout[y][x] == '-') {
                     controlList.add(new RelativeBlockVector(x, y, 0));
                 }
-                if (id == ENTRANCE || id == EXIT) {
-                    entranceList.add(new RelativeBlockVector(x, y, 0));
-                    exitDepths[x] = y;
-                    if (id == EXIT) {
-                        this.exitBlock = new RelativeBlockVector(x, y, 0);
+                if(id.type == 1){
+                    if (id.portalType == ENTRANCE || id.portalType == EXIT) {
+                        entranceList.add(new RelativeBlockVector(x, y, 0));
+                        exitDepths[x] = y;
+                        if (id.portalType == EXIT) {
+                            this.exitBlock = new RelativeBlockVector(x, y, 0);
+                        }
                     }
-                }
-                else if (id != ANYTHING) {
+                }else if (id.portalType != ANYTHING) {
                     borderList.add(new RelativeBlockVector(x, y, 0));
                 }
             }
@@ -107,7 +108,7 @@ public class Gate
             }
             this.writeConfig(bw, "toowner", this.toOwner);
             for (final Character type : this.types.keySet()) {
-                final Material value = this.types.get(type);
+                final Material value = this.types.get(type).material;
                 if (value == null) {
                     continue;
                 }
@@ -148,7 +149,7 @@ public class Gate
         return this.layout;
     }
     
-    public HashMap<Character, Material> getTypes() {
+    public HashMap<Character,DataMaterial> getTypes() {
         return this.types;
     }
 
@@ -174,7 +175,7 @@ public class Gate
     }
     
     public Material getControlBlock() {
-        return this.types.get('-');
+        return this.types.get('-').material;
     }
     
     public String getFilename() {
@@ -229,9 +230,9 @@ public class Gate
     public boolean matches(final Blox topleft, final int modX, final int modZ, final boolean onCreate) {
         for (int y = 0; y < layout.length; y++) {
             for (int x = 0; x < layout[y].length; x++) {
-                int id = types.get(layout[y][x]);
+                DataMaterial id = types.get(layout[y][x]);
 
-                if (id == ENTRANCE || id == EXIT) {
+                if (id.portalType == ENTRANCE || id.portalType == EXIT) {
                     // TODO: Remove once snowmanTrailEvent is added
                     if (Stargate.ignoreEntrance) continue;
 
@@ -256,8 +257,8 @@ public class Gate
                         Stargate.debug("Gate::Matches", "Entrance/Exit Material Mismatch: " + type);
                         return false;
                     }
-                } else if (id != ANYTHING) {
-                    if (topleft.modRelative(x, y, 0, modX, 1, modZ).getType() != id) {
+                } else if (id.portalType != ANYTHING) {
+                    if (topleft.modRelative(x, y, 0, modX, 1, modZ).getType() != id.material) {
                         Stargate.debug("Gate::Matches", "Block Type Mismatch: " + topleft.modRelative(x, y, 0, modX, 1, modZ).getType() + " != " + id);
                         return false;
                     }
@@ -281,13 +282,13 @@ public class Gate
         Scanner scanner = null;
         boolean designing = false;
         final ArrayList<ArrayList<Character>> design = new ArrayList<>();
-        final HashMap<Character, Material> types = new HashMap<>();
+        final HashMap<Character, DataMaterial> types = new HashMap<>();
         final HashMap<String, String> config = new HashMap<>();
         final HashSet<Material> frameTypes = new HashSet<>();
         int cols = 0;
-        types.put('.', -2);
-        types.put('*', -4);
-        types.put(' ', -1);
+        types.put('.', new DataMaterial(-2));
+        types.put('*', new DataMaterial(-4));
+        types.put(' ', new DataMaterial(-1));
         try {
             scanner = new Scanner(file);
             while (scanner.hasNextLine()) {
@@ -316,7 +317,7 @@ public class Gate
                     if (key.length() == 1) {
                         final Character symbol2 = key.charAt(0);
                         final Material id = Material.matchMaterial(value);
-                        types.put(symbol2, id);
+                        types.put(symbol2, new DataMaterial(id));
                         frameTypes.add(id);
                     }
                     else {
@@ -413,12 +414,12 @@ public class Gate
     public static void populateDefaults(final String gateFolder) {
         final Material Obsidian = Material.OBSIDIAN;
         final Character[][] layout = { { ' ', 'X', 'X', ' ' }, { 'X', '.', '.', 'X' }, { '-', '.', '.', '-' }, { 'X', '*', '.', 'X' }, { ' ', 'X', 'X', ' ' } };
-        final HashMap<Character, Material> types = new HashMap<>();
-        types.put('.', ENTRANCE);
-        types.put('*', EXIT);
-        types.put(' ', ANYTHING);
-        types.put('X', Obsidian);
-        types.put('-', Obsidian);
+        final HashMap<Character, DataMaterial> types = new HashMap<>();
+        types.put('.', new DataMaterial(ENTRANCE));
+        types.put('*', new DataMaterial(EXIT));
+        types.put(' ', new DataMaterial(ANYTHING));
+        types.put('X', new DataMaterial(Obsidian));
+        types.put('-', new DataMaterial(Obsidian));
         final Gate gate = new Gate("nethergate.gate", layout, types);
         gate.save(gateFolder);
         registerGate(gate);
