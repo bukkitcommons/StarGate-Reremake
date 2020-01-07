@@ -1241,7 +1241,7 @@ public final class Portal
                                         if (network.isEmpty()) {
                                             network = Stargate.getDefaultNetwork();
                                         }
-                                        final String owner = (split.length > 10) ? split[10] : "";
+                                        final OfflinePlayer owner = Bukkit.getOfflinePlayer(UUID.fromString((split.length > 10) ? split[10] : ""));
                                         final boolean hidden = split.length > 11 && split[11].equalsIgnoreCase("true");
                                         final boolean alwaysOn = split.length > 12 && split[12].equalsIgnoreCase("true");
                                         final boolean priv = split.length > 13 && split[13].equalsIgnoreCase("true");
@@ -1251,7 +1251,7 @@ public final class Portal
                                         final boolean noNetwork = split.length > 18 && split[18].equalsIgnoreCase("true");
                                         final boolean random = split.length > 19 && split[19].equalsIgnoreCase("true");
                                         final boolean bungee = split.length > 20 && split[20].equalsIgnoreCase("true");
-                                        final Portal portal = new Portal(topLeft, modX, modZ, rotX, sign, button, dest, name, false, network, gate, owner, hidden, alwaysOn, priv, free, backwards, show, noNetwork, random, bungee);
+                                        final Portal portal = new Portal(topLeft, modX, modZ, rotX, sign, button, dest, name,false, network, gate, owner, hidden, alwaysOn, priv, free, backwards, show, noNetwork, random, bungee);
                                         portal.register();
                                         portal.close(true);
                                     }
