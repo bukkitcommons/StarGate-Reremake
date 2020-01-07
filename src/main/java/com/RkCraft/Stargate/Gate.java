@@ -18,7 +18,6 @@ public class Gate
     private final String filename;
     private final Character[][] layout;
     private final HashMap<Character, Material> types;
-    private final HashMap<Character, Integer> metadata;
     private RelativeBlockVector[] entrances;
     private RelativeBlockVector[] border;
     private RelativeBlockVector[] controls;
@@ -31,7 +30,7 @@ public class Gate
     private int destroyCost;
     private boolean toOwner;
     
-    public Gate(final String filename, final Character[][] layout, final HashMap<Character, Material> types, final HashMap<Character, Integer> metadata) {
+    public Gate(final String filename, final Character[][] layout, final HashMap<Character, Material> types) {
         this.entrances = new RelativeBlockVector[0];
         this.border = new RelativeBlockVector[0];
         this.controls = new RelativeBlockVector[0];
@@ -45,7 +44,6 @@ public class Gate
         this.toOwner = false;
         this.filename = filename;
         this.layout = layout;
-        this.metadata = metadata;
         this.types = types;
         this.populateCoordinates();
     }
@@ -116,11 +114,6 @@ public class Gate
                 bw.append(type);
                 bw.append('=');
                 bw.append(value.toString());
-                final Integer mData = this.metadata.get(type);
-                if (mData != null) {
-                    bw.append(':');
-                    bw.append(mData.toString());
-                }
                 bw.newLine();
             }
             bw.newLine();
@@ -158,10 +151,7 @@ public class Gate
     public HashMap<Character, Material> getTypes() {
         return this.types;
     }
-    
-    public HashMap<Character, Integer> getMetaData() {
-        return this.metadata;
-    }
+
     
     public RelativeBlockVector[] getEntrances() {
         return this.entrances;
@@ -237,39 +227,44 @@ public class Gate
     }
     
     public boolean matches(final Blox topleft, final int modX, final int modZ, final boolean onCreate) {
-        for (int y = 0; y < this.layout.length; ++y) {
-            for (int x = 0; x < this.layout[y].length; ++x) {
-                final Material id = this.types.get(this.layout[y][x]);
+        for (int y = 0; y < layout.length; y++) {
+            for (int x = 0; x < layout[y].length; x++) {
+                int id = types.get(layout[y][x]);
+
                 if (id == ENTRANCE || id == EXIT) {
-                    if (!Stargate.ignoreEntrance) {
-                        final Material type = topleft.modRelative(x, y, 0, modX, 1, modZ).getType();
-                        if (!onCreate || type != Material.AIR) {
-                            if (type != this.portalBlockClosed && type != this.portalBlockOpen) {
-                                if (this.portalBlockOpen == Material.WATER) {
-                                    continue;
-                                }
-                                if (this.portalBlockOpen == Material.LAVA) {
-                                    continue;
-                                }
-                                Stargate.debug("Gate::Matches", "Entrance/Exit Material Mismatch: " + type);
-                                return false;
+                    // TODO: Remove once snowmanTrailEvent is added
+                    if (Stargate.ignoreEntrance) continue;
+
+                    Material type = topleft.modRelative(x, y, 0, modX, 1, modZ).getType();
+
+                    // Ignore entrance if it's air and we're creating a new gate
+                    if (onCreate && type == Material.AIR) continue;
+
+                    if (type != portalBlockClosed && type != portalBlockOpen) {
+                        // Special case for water gates
+                        if (portalBlockOpen == Material.WATER ) {
+                            if (type == Material.WATER) {
+                                continue;
                             }
                         }
-                    }
-                }
-                else if (id != ANYTHING) {
-                    if (topleft.modRelative(x, y, 0, modX, 1, modZ).getType() != id) {
-                        Stargate.debug("Gate::Matches", "Block Type Mismatch: " + topleft.modRelative(x, y, 0, modX, 1, modZ).getType() + " != " + id);
+                        // Special case for lava gates
+                        if (portalBlockOpen == Material.LAVA) {
+                            if (type == Material.LAVA) {
+                                continue;
+                            }
+                        }
+                        Stargate.debug("Gate::Matches", "Entrance/Exit Material Mismatch: " + type);
                         return false;
                     }
-                    final Integer mData = this.metadata.get(this.layout[y][x]);
-                    if (mData != null && topleft.modRelative(x, y, 0, modX, 1, modZ).getData() != mData) {
-                        Stargate.debug("Gate::Matches", "Block Data Mismatch: " + topleft.modRelative(x, y, 0, modX, 1, modZ).getData() + " != " + mData);
+                } else if (id != ANYTHING) {
+                    if (topleft.modRelative(x, y, 0, modX, 1, modZ).getType() != id) {
+                        Stargate.debug("Gate::Matches", "Block Type Mismatch: " + topleft.modRelative(x, y, 0, modX, 1, modZ).getType() + " != " + id);
                         return false;
                     }
                 }
             }
         }
+
         return true;
     }
     
@@ -287,7 +282,6 @@ public class Gate
         boolean designing = false;
         final ArrayList<ArrayList<Character>> design = new ArrayList<>();
         final HashMap<Character, Material> types = new HashMap<>();
-        final HashMap<Character, Integer> metadata = new HashMap<>();
         final HashMap<String, String> config = new HashMap<>();
         final HashSet<Material> frameTypes = new HashSet<>();
         int cols = 0;
@@ -321,12 +315,6 @@ public class Gate
                     String value = split[1].trim();
                     if (key.length() == 1) {
                         final Character symbol2 = key.charAt(0);
-                        if (value.contains(":")) {
-                            split = value.split(":");
-                            value = split[0].trim();
-                            final String mData = split[1].trim();
-                            metadata.put(symbol2, Integer.parseInt(mData));
-                        }
                         final Material id = Material.matchMaterial(value);
                         types.put(symbol2, id);
                         frameTypes.add(id);
@@ -361,7 +349,7 @@ public class Gate
             }
             layout[y] = result;
         }
-        final Gate gate = new Gate(file.getName(), layout, types, metadata);
+        final Gate gate = new Gate(file.getName(), layout, types);
         gate.portalBlockOpen = Material.matchMaterial(readConfig(config, gate, file, "portal-open", gate.portalBlockOpen.name()));
         gate.portalBlockClosed = Material.matchMaterial(readConfig(config, gate, file, "portal-closed", gate.portalBlockClosed.name()));
         gate.useCost = readConfig(config, gate, file, "usecost", -1);
@@ -431,8 +419,7 @@ public class Gate
         types.put(' ', ANYTHING);
         types.put('X', Obsidian);
         types.put('-', Obsidian);
-        final HashMap<Character, Integer> metadata = new HashMap<>();
-        final Gate gate = new Gate("nethergate.gate", layout, types, metadata);
+        final Gate gate = new Gate("nethergate.gate", layout, types);
         gate.save(gateFolder);
         registerGate(gate);
     }
