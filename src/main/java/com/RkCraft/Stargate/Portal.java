@@ -1163,7 +1163,7 @@ public final class Portal
                 builder.append(':');
                 builder.append(portal.getNetwork());
                 builder.append(':');
-                builder.append(portal.getOwner());
+                builder.append(portal.getOwner().getUniqueId().toString());
                 builder.append(':');
                 builder.append(portal.isHidden());
                 builder.append(':');
