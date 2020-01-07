@@ -1,44 +1,30 @@
 package com.RkCraft.Stargate;
 
+import org.bukkit.Material;
+
 public class BloxPopulator
 {
     private Blox blox;
-    private int nextMat;
-    private byte nextData;
+    private Material nextMat;
     
-    public BloxPopulator(final Blox b, final int m) {
+    public BloxPopulator(final Blox b, final Material m) {
         this.blox = b;
         this.nextMat = m;
-        this.nextData = 0;
     }
-    
-    public BloxPopulator(final Blox b, final int m, final byte d) {
-        this.blox = b;
-        this.nextMat = m;
-        this.nextData = d;
-    }
-    
+
     public void setBlox(final Blox b) {
         this.blox = b;
     }
     
-    public void setMat(final int m) {
+    public void setMat(final Material m) {
         this.nextMat = m;
-    }
-    
-    public void setData(final byte d) {
-        this.nextData = d;
     }
     
     public Blox getBlox() {
         return this.blox;
     }
     
-    public int getMat() {
+    public Material getMat() {
         return this.nextMat;
-    }
-    
-    public byte getData() {
-        return this.nextData;
     }
 }
