@@ -13,11 +13,11 @@ public class Gate
     public static final int CONTROL = -3;
     public static final int EXIT = -4;
     private static final HashMap<String, Gate> gates;
-    private static final HashMap<Integer, ArrayList<Gate>> controlBlocks;
-    private static final HashSet<Integer> frameBlocks;
+    private static final HashMap<Material, ArrayList<Gate>> controlBlocks;
+    private static final HashSet<Material> frameBlocks;
     private final String filename;
     private final Character[][] layout;
-    private final HashMap<Character, Integer> types;
+    private final HashMap<Character, Material> types;
     private final HashMap<Character, Integer> metadata;
     private RelativeBlockVector[] entrances;
     private RelativeBlockVector[] border;
@@ -31,7 +31,7 @@ public class Gate
     private int destroyCost;
     private boolean toOwner;
     
-    public Gate(final String filename, final Character[][] layout, final HashMap<Character, Integer> types, final HashMap<Character, Integer> metadata) {
+    public Gate(final String filename, final Character[][] layout, final HashMap<Character, Material> types, final HashMap<Character, Integer> metadata) {
         this.entrances = new RelativeBlockVector[0];
         this.border = new RelativeBlockVector[0];
         this.controls = new RelativeBlockVector[0];
@@ -109,7 +109,7 @@ public class Gate
             }
             this.writeConfig(bw, "toowner", this.toOwner);
             for (final Character type : this.types.keySet()) {
-                final Integer value = this.types.get(type);
+                final Material value = this.types.get(type);
                 if (value < 0) {
                     continue;
                 }
@@ -151,7 +151,7 @@ public class Gate
         return this.layout;
     }
     
-    public HashMap<Character, Integer> getTypes() {
+    public HashMap<Character, Material> getTypes() {
         return this.types;
     }
     
@@ -179,7 +179,7 @@ public class Gate
         return this.exitBlock;
     }
     
-    public int getControlBlock() {
+    public Material getControlBlock() {
         return this.types.get('-');
     }
     
@@ -242,14 +242,10 @@ public class Gate
                         if (!onCreate || type != Material.AIR) {
                             if (type != this.portalBlockClosed && type != this.portalBlockOpen) {
                                 if (this.portalBlockOpen == Material.WATER) {
-                                    if (type == Material.WATER) {
-                                        continue;
-                                    }
+                                    continue;
                                 }
                                 if (this.portalBlockOpen == Material.LAVA) {
-                                    if (type == Material.LAVA) {
-                                        continue;
-                                    }
+                                    continue;
                                 }
                                 Stargate.debug("Gate::Matches", "Entrance/Exit Material Mismatch: " + type);
                                 return false;
@@ -275,7 +271,7 @@ public class Gate
     
     public static void registerGate(final Gate gate) {
         Gate.gates.put(gate.getFilename(), gate);
-        final int blockID = gate.getControlBlock();
+        final Material blockID = gate.getControlBlock();
         if (!Gate.controlBlocks.containsKey(blockID)) {
             Gate.controlBlocks.put(blockID, new ArrayList<>());
         }
@@ -286,10 +282,10 @@ public class Gate
         Scanner scanner = null;
         boolean designing = false;
         final ArrayList<ArrayList<Character>> design = new ArrayList<>();
-        final HashMap<Character, Integer> types = new HashMap<>();
+        final HashMap<Character, Material> types = new HashMap<>();
         final HashMap<Character, Integer> metadata = new HashMap<>();
         final HashMap<String, String> config = new HashMap<>();
-        final HashSet<Integer> frameTypes = new HashSet<>();
+        final HashSet<Material> frameTypes = new HashSet<>();
         int cols = 0;
         types.put('.', -2);
         types.put('*', -4);
@@ -327,7 +323,7 @@ public class Gate
                             final String mData = split[1].trim();
                             metadata.put(symbol2, Integer.parseInt(mData));
                         }
-                        final Integer id = Integer.parseInt(value);
+                        final Material id = Material.matchMaterial(value);
                         types.put(symbol2, id);
                         frameTypes.add(id);
                     }
@@ -367,12 +363,12 @@ public class Gate
         gate.useCost = readConfig(config, gate, file, "usecost", -1);
         gate.destroyCost = readConfig(config, gate, file, "destroycost", -1);
         gate.createCost = readConfig(config, gate, file, "createcost", -1);
-        gate.toOwner = (config.containsKey("toowner") ? Boolean.valueOf(config.get("toowner")) : iConomyHandler.toOwner);
+        gate.toOwner = (config.containsKey("toowner") ? Boolean.parseBoolean(config.get("toowner")) : iConomyHandler.toOwner);
         if (gate.getControls().length != 2) {
             Stargate.log.log(Level.SEVERE, "Could not load Gate {0} - Gates must have exactly 2 control points.", file.getName());
             return null;
         }
-        Gate.frameBlocks.addAll((Collection<?>)frameTypes);
+        Gate.frameBlocks.addAll(frameTypes);
         gate.save(file.getParent() + "/");
         return gate;
     }
@@ -430,9 +426,9 @@ public class Gate
         return getGatesByControlBlock(block);
     }
     
-    public static Gate[] getGatesByControlBlock(final int type) {
+    public static Gate[] getGatesByControlBlock(final Material block) {
         Gate[] result = new Gate[0];
-        final ArrayList<Gate> lookup = Gate.controlBlocks.get(type);
+        final ArrayList<Gate> lookup = Gate.controlBlocks.get(block);
         if (lookup != null) {
             result = lookup.toArray(result);
         }
@@ -447,7 +443,7 @@ public class Gate
         return Gate.gates.size();
     }
     
-    public static boolean isGateBlock(final int type) {
+    public static boolean isGateBlock(final Material type) {
         return Gate.frameBlocks.contains(type);
     }
     
