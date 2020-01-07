@@ -59,7 +59,7 @@ public class Gate
         RelativeBlockVector lastExit = null;
         for (int y = 0; y < this.layout.length; ++y) {
             for (int x = 0; x < this.layout[y].length; ++x) {
-                final Integer id = this.types.get(this.layout[y][x]);
+                final Material id = this.types.get(this.layout[y][x]);
                 if (this.layout[y][x] == '-') {
                     controlList.add(new RelativeBlockVector(x, y, 0));
                 }
@@ -110,7 +110,7 @@ public class Gate
             this.writeConfig(bw, "toowner", this.toOwner);
             for (final Character type : this.types.keySet()) {
                 final Material value = this.types.get(type);
-                if (value < 0) {
+                if (value == null) {
                     continue;
                 }
                 bw.append(type);
@@ -141,7 +141,11 @@ public class Gate
         bw.append(String.format("%s=%s", key, value));
         bw.newLine();
     }
-    
+    private void writeConfig(final BufferedWriter bw, final String key, final int value) throws IOException {
+        bw.append(String.format("%s=%s", key, value));
+        bw.newLine();
+    }
+
     private void writeConfig(final BufferedWriter bw, final String key, final boolean value) throws IOException {
         bw.append(String.format("%s=%b", key, value));
         bw.newLine();
@@ -380,6 +384,17 @@ public class Gate
             }
             catch (NumberFormatException ex) {
                 Stargate.log.log(Level.WARNING, String.format("%s reading %s: %s is not string", ex.getClass().getName(), file, key));
+            }
+        }
+        return def;
+    }
+    private static int readConfig(final HashMap<String, String> config, final Gate gate, final File file, final String key, final int def) {
+        if (config.containsKey(key)) {
+            try {
+                return Integer.parseInt(config.get(key));
+            }
+            catch (NumberFormatException ex) {
+                Stargate.log.log(Level.WARNING, String.format("%s reading %s: %s is not int", ex.getClass().getName(), file, key));
             }
         }
         return def;
