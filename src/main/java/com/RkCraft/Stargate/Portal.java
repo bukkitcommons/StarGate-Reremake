@@ -195,7 +195,7 @@ public final class Portal
         return this.network;
     }
     
-    public void setNetwor k(final String network) {
+    public void setNetwork(final String network) {
         this.network = network;
     }
     
@@ -316,7 +316,7 @@ public final class Portal
             return false;
         }
         this.getWorld().loadChunk(this.getWorld().getChunkAt(this.topLeft.getBlock()));
-        final int openType = this.gate.getPortalBlockOpen();
+        final Material openType = this.gate.getPortalBlockOpen();
         for (final Blox inside : this.getEntrances()) {
             Stargate.blockPopulatorQueue.add(new BloxPopulator(inside, openType));
         }
@@ -351,7 +351,7 @@ public final class Portal
         if (this.isAlwaysOn() && !force) {
             return;
         }
-        final int closedType = this.gate.getPortalBlockClosed();
+        final Material closedType = this.gate.getPortalBlockClosed();
         for (final Blox inside : this.getEntrances()) {
             Stargate.blockPopulatorQueue.add(new BloxPopulator(inside, closedType));
         }
@@ -481,7 +481,7 @@ public final class Portal
             Stargate.log.log(Level.WARNING, "[Stargate] Missing destination point in .gate file {0}", this.gate.getFilename());
         }
         if (loc != null) {
-            if (this.getWorld().getBlockTypeIdAt(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()) == Material.STEP.getId()) {
+            if (Tag.STAIRS.isTagged(this.getWorld().getBlockAt(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()).getType())) {
                 loc.setY(loc.getY() + 0.5);
             }
             loc.setPitch(traveller.getPitch());
@@ -501,7 +501,7 @@ public final class Portal
     public boolean isVerified() {
         this.verified = true;
         for (final RelativeBlockVector control : this.gate.getControls()) {
-            this.verified = (this.verified && this.getBlockAt(control).getBlock().getTypeId() == this.gate.getControlBlock());
+            this.verified = (this.verified && this.getBlockAt(control).getBlock().getType() == this.gate.getControlBlock());
         }
         return this.verified;
     }
@@ -1058,8 +1058,7 @@ public final class Portal
         }
         if (!alwaysOn) {
             button = topleft.modRelative(buttonVector.getRight(), buttonVector.getDepth(), buttonVector.getDistance() + 1, modX, 1, modZ);
-            button.setType(Material.STONE_BUTTON.getId());
-            button.setData(facing);
+            button.setType(Material.STONE_BUTTON);
             portal.setButton(button);
         }
         portal.register();
@@ -1271,8 +1270,8 @@ public final class Portal
                     if (!portal2.wasVerified()) {
                         if (!portal2.isVerified() || !portal2.checkIntegrity()) {
                             for (final RelativeBlockVector control : portal2.getGate().getControls()) {
-                                if (portal2.getBlockAt(control).getBlock().getTypeId() != portal2.getGate().getControlBlock()) {
-                                    Stargate.debug("loadAllGates", "Control Block Type == " + portal2.getBlockAt(control).getBlock().getTypeId());
+                                if (portal2.getBlockAt(control).getBlock().getType() != portal2.getGate().getControlBlock()) {
+                                    Stargate.debug("loadAllGates", "Control Block Type == " + portal2.getBlockAt(control).getBlock().getType());
                                 }
                             }
                             portal2.unregister(false);
