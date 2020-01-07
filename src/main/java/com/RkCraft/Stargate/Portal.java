@@ -627,7 +627,7 @@ public final class Portal
     
     public final void drawSign() {
         final Material sMat = this.id.getBlock().getType();
-        if (Tag.SIGNS.isTagged(sMat) || Tag.WALL_SIGNS.isTagged(sMat)) {
+        if (!Tag.SIGNS.isTagged(sMat) || !Tag.WALL_SIGNS.isTagged(sMat)) {
             Stargate.log.warning("[Stargate] Sign block is not a Sign object");
             Stargate.debug("Portal::drawSign", "Block: " + this.id.getBlock().getType() + " @ " + this.id.getBlock().getLocation());
             return;
@@ -829,9 +829,11 @@ public final class Portal
         final Blox id = new Blox(event.getBlock());
         final Block idParent = id.getParent();
         if (idParent == null) {
+            Stargate.debug("createPortal","idParent is null");
             return null;
         }
         if (Gate.getGatesByControlBlock(idParent).length == 0) {
+            Stargate.debug("createPortal","getGatesByControlBlock(idParent) size = 0");
             return null;
         }
         if (getByBlock(idParent) != null) {

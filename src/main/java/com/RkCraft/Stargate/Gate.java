@@ -63,7 +63,8 @@ public class Gate
                 if(id == null){
                     id=new DataMaterial(0);
                 }
-                if (this.layout[y][x] == '-') {
+                if (this.layout[y][x] .equals('-')) {
+                    Stargate.debug("populateCoordinates","load a control block to controlList");
                     controlList.add(new RelativeBlockVector(x, y, 0));
                 }
                 if(id.type == 1){
@@ -282,6 +283,7 @@ public class Gate
         Gate.gates.put(gate.getFilename(), gate);
         final Material blockID = gate.getControlBlock();
         if (!Gate.controlBlocks.containsKey(blockID)) {
+            Stargate.debug("registerGate","registered "+blockID.name());
             Gate.controlBlocks.put(blockID, new ArrayList<>());
         }
         Gate.controlBlocks.get(blockID).add(gate);
@@ -444,12 +446,14 @@ public class Gate
     }
     
     public static Gate[] getGatesByControlBlock(final Block block) {
-        return getGatesByControlBlock(block);
+        return getGatesByControlBlock(block.getType());
     }
     
     public static Gate[] getGatesByControlBlock(final Material block) {
         Gate[] result = new Gate[0];
         final ArrayList<Gate> lookup = Gate.controlBlocks.get(block);
+        Stargate.debug("getGatesByControlBlock","Target material is "+block.name());
+        Stargate.debug("getGatesByControlBlock","ControlBlock list is  "+Gate.controlBlocks.toString());
         if (lookup != null) {
             result = lookup.toArray(result);
         }

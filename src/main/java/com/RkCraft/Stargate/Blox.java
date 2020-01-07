@@ -2,6 +2,9 @@ package com.RkCraft.Stargate;
 
 import org.bukkit.block.*;
 import org.bukkit.*;
+import org.bukkit.material.Directional;
+
+import java.time.LocalDate;
 
 public class Blox
 {
@@ -106,27 +109,10 @@ public class Blox
         int offsetX = 0;
         int offsetY = 0;
         int offsetZ = 0;
-        if (Tag.WALL_SIGNS.isTagged(this.getBlock().getType())) {
-            if (this.getData() == 2) {
-                offsetZ = 1;
-            }
-            else if (this.getData() == 3) {
-                offsetZ = -1;
-            }
-            else if (this.getData() == 4) {
-                offsetX = 1;
-            }
-            else if (this.getData() == 5) {
-                offsetX = -1;
-            }
-        }
-        else {
-            if (Tag.SIGNS.isTagged(this.getBlock().getType())) {
-                return;
-            }
-            offsetY = -1;
-        }
-        this.parent = new Blox(this.world, this.getX() + offsetX, this.getY() + offsetY, this.getZ() + offsetZ);
+        org.bukkit.block.data.Directional directional = (org.bukkit.block.data.Directional) this.getBlock().getBlockData();
+        Location location = this.getBlock().getRelative(directional.getFacing().getOppositeFace()).getLocation();
+        this.parent = new Blox(this.world,location.getBlockX(),location.getBlockY(),location.getBlockZ());
+        //this.parent = new Blox(this.world, this.getX() + offsetX, this.getY() + offsetY, this.getZ() + offsetZ);
     }
     
     @Override
