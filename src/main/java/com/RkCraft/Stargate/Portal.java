@@ -1,27 +1,29 @@
 package com.RkCraft.Stargate;
 
-import org.bukkit.block.Sign;
-import org.bukkit.block.data.Powerable;
-import org.bukkit.event.*;
-import org.bukkit.material.*;
-import org.bukkit.event.player.*;
-import org.bukkit.util.*;
-import org.bukkit.entity.*;
-import org.bukkit.plugin.*;
-import org.bukkit.entity.minecart.*;
-import java.util.logging.*;
-import org.bukkit.command.*;
-import org.bukkit.block.*;
-import org.bukkit.*;
-import org.bukkit.event.block.*;
 import com.RkCraft.Stargate.event.*;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Sign;
+import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.Orientable;
+import org.bukkit.block.data.Powerable;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Vehicle;
+import org.bukkit.entity.minecart.StorageMinecart;
+import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.Vector;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.*;
+import java.util.logging.Level;
 
-public final class Portal
-{
+public final class Portal {
     private static final HashMap<Blox, Portal> lookupBlocks;
     private static final HashMap<Blox, Portal> lookupEntrances;
     private static final HashMap<Blox, Portal> lookupControls;
@@ -60,7 +62,7 @@ public final class Portal
     private ArrayList<String> destinations;
     private boolean isOpen;
     private long openTime;
-    
+
     private Portal(final Blox topLeft, final int modX, final int modZ, final float rotX, final Blox id, final Blox button, final String dest, final String name, final boolean verified, final String network, final Gate gate, final OfflinePlayer owner, final boolean hidden, final boolean alwaysOn, final boolean priv, final boolean free, final boolean backwards, final boolean show, final boolean noNetwork, final boolean random, final boolean bungee) {
         this.lastDest = "";
         this.owner = null;
@@ -110,108 +112,108 @@ public final class Portal
             this.drawSign();
         }
     }
-    
+
     public boolean isOpen() {
         return this.isOpen || this.isAlwaysOn();
     }
-    
+
     public boolean isAlwaysOn() {
         return this.alwaysOn;
     }
-    
+
     public boolean isHidden() {
         return this.hidden;
     }
-    
+
     public boolean isPrivate() {
         return this.priv;
     }
-    
+
     public boolean isFree() {
         return this.free;
     }
-    
+
     public boolean isBackwards() {
         return this.backwards;
     }
-    
+
     public boolean isShown() {
         return this.show;
     }
-    
+
     public boolean isNoNetwork() {
         return this.noNetwork;
     }
-    
+
     public boolean isRandom() {
         return this.random;
     }
-    
+
     public boolean isBungee() {
         return this.bungee;
     }
-    
+
     public void setAlwaysOn(final boolean alwaysOn) {
         this.alwaysOn = alwaysOn;
     }
-    
+
     public void setHidden(final boolean hidden) {
         this.hidden = hidden;
     }
-    
+
     public void setPrivate(final boolean priv) {
         this.priv = priv;
     }
-    
+
     public void setFree(final boolean free) {
         this.free = free;
     }
-    
+
     public void setBackwards(final boolean backwards) {
         this.backwards = backwards;
     }
-    
+
     public void setShown(final boolean show) {
         this.show = show;
     }
-    
+
     public void setNoNetwork(final boolean noNetwork) {
         this.noNetwork = noNetwork;
     }
-    
+
     public void setRandom(final boolean random) {
         this.random = random;
     }
-    
+
     public float getRotation() {
         return this.rotX;
     }
-    
+
     public Player getActivePlayer() {
         return this.activePlayer;
     }
-    
+
     public String getNetwork() {
         return this.network;
     }
-    
+
     public void setNetwork(final String network) {
         this.network = network;
     }
-    
+
     public long getOpenTime() {
         return this.openTime;
     }
-    
+
     public String getName() {
         return this.name;
     }
-    
+
     public void setName(final String name) {
         this.name = filterName(name);
         this.drawSign();
     }
-    
+
     public Portal getDestination(final Player player) {
         if (!this.isRandom()) {
             return getByName(this.destination, this.getNetwork());
@@ -225,35 +227,35 @@ public final class Portal
         this.destinations.clear();
         return getByName(dest, this.getNetwork());
     }
-    
+
     public Portal getDestination() {
         return this.getDestination(null);
     }
-    
+
     public void setDestination(final Portal destination) {
         this.setDestination(destination.getName());
     }
-    
+
     public void setDestination(final String destination) {
         this.destination = destination;
     }
-    
+
     public String getDestinationName() {
         return this.destination;
     }
-    
+
     public Gate getGate() {
         return this.gate;
     }
-    
+
     public OfflinePlayer getOwner() {
         return this.owner;
     }
-    
+
     public void setOwner(final OfflinePlayer owner) {
         this.owner = owner;
     }
-    
+
     public Blox[] getEntrances() {
         if (this.entrances == null) {
             final RelativeBlockVector[] space = this.gate.getEntrances();
@@ -265,7 +267,7 @@ public final class Portal
         }
         return this.entrances;
     }
-    
+
     public Blox[] getFrame() {
         if (this.frame == null) {
             final RelativeBlockVector[] border = this.gate.getBorder();
@@ -277,34 +279,34 @@ public final class Portal
         }
         return this.frame;
     }
-    
+
     public Block getSign() {
         return this.id.getBlock();
     }
-    
+
     public World getWorld() {
         return this.world;
     }
-    
+
     public Block getButton() {
         if (this.button == null) {
             return null;
         }
         return this.button.getBlock();
     }
-    
+
     public void setButton(final Blox button) {
         this.button = button;
     }
-    
+
     public static ArrayList<String> getNetwork(final String network) {
         return Portal.allPortalsNet.get(network.toLowerCase());
     }
-    
+
     public boolean open(final boolean force) {
         return this.open(null, force);
     }
-    
+
     public boolean open(final Player openFor, boolean force) {
         final StargateOpenEvent event = new StargateOpenEvent(openFor, this, force);
         Stargate.server.getPluginManager().callEvent(event);
@@ -318,7 +320,13 @@ public final class Portal
         this.getWorld().loadChunk(this.getWorld().getChunkAt(this.topLeft.getBlock()));
         final Material openType = this.gate.getPortalBlockOpen();
         for (final Blox inside : this.getEntrances()) {
-            Stargate.blockPopulatorQueue.add(new BloxPopulator(inside, openType));
+            Sign sign = (Sign) id.getBlock().getState();
+            Directional directionl = (Directional) sign.getBlock().getBlockData();
+            if(directionl.getFacing() == BlockFace.WEST || directionl.getFacing()==BlockFace.EAST){
+                Stargate.blockPopulatorQueue.add(new AbstractMap.SimpleImmutableEntry<>(new BloxPopulator(inside, openType),Axis.Z));
+            }else{
+                Stargate.blockPopulatorQueue.add(new AbstractMap.SimpleImmutableEntry<>(new BloxPopulator(inside, openType),null));
+            }
         }
         this.isOpen = true;
         this.openTime = System.currentTimeMillis() / 1000L;
@@ -337,7 +345,7 @@ public final class Portal
         }
         return true;
     }
-    
+
     public void close(boolean force) {
         if (!this.isOpen) {
             return;
@@ -353,7 +361,14 @@ public final class Portal
         }
         final Material closedType = this.gate.getPortalBlockClosed();
         for (final Blox inside : this.getEntrances()) {
-            Stargate.blockPopulatorQueue.add(new BloxPopulator(inside, closedType));
+            Sign sign = (Sign) id.getBlock().getState();
+            Directional directionl = (Directional) sign.getBlock().getBlockData();
+            if(directionl.getFacing() == BlockFace.WEST || directionl.getFacing()==BlockFace.EAST){
+                Stargate.blockPopulatorQueue.add(new AbstractMap.SimpleImmutableEntry<>(new BloxPopulator(inside, closedType),Axis.Z));
+            }else{
+                Stargate.blockPopulatorQueue.add(new AbstractMap.SimpleImmutableEntry<>(new BloxPopulator(inside, closedType),null));
+            }
+
         }
         this.player = null;
         this.isOpen = false;
@@ -368,28 +383,28 @@ public final class Portal
         }
         this.deactivate();
     }
-    
+
     public boolean isOpenFor(final Player player) {
         return this.isOpen && (this.isAlwaysOn() || this.player == null || (player != null && player.getName().equalsIgnoreCase(this.player.getName())));
     }
-    
+
     public boolean isFixed() {
         return this.fixed;
     }
-    
+
     public boolean isPowered() {
         final RelativeBlockVector[] arr$;
         final RelativeBlockVector[] controls = arr$ = this.gate.getControls();
         for (final RelativeBlockVector vector : arr$) {
             //final MaterialData mat = this.getBlockAt(vector).getBlock().getState().getData();
             BlockState state = this.getBlockAt(vector).getBlock().getState();
-            if(state instanceof Powerable){
+            if (state instanceof Powerable) {
                 return ((Powerable) state).isPowered();
             }
         }
         return false;
     }
-    
+
     public void teleport(final Player player, final Portal origin, final PlayerMoveEvent event) {
         final Location traveller = player.getLocation();
         Location exit = this.getExit(traveller);
@@ -413,12 +428,11 @@ public final class Portal
         if (event == null) {
             exit.setYaw(this.getRotation());
             player.teleport(exit);
-        }
-        else {
+        } else {
             event.setTo(exit);
         }
     }
-    
+
     public void teleport(final Vehicle vehicle) {
         final Location traveller = new Location(this.world, vehicle.getLocation().getX(), vehicle.getLocation().getY(), vehicle.getLocation().getZ());
         final Location exit = this.getExit(traveller);
@@ -451,33 +465,28 @@ public final class Portal
             vehicle.remove();
             passengers.forEach((entity -> entity.teleport(exit)));
             //passengers.teleport(exit);
-            Stargate.server.getScheduler().scheduleSyncDelayedTask(Stargate.stargate, new Runnable() {
-                @Override
-                public void run() {
-                    passengers.forEach(v::addPassenger);
-                    v.setVelocity(newVelocity);
-                }
+            Stargate.server.getScheduler().scheduleSyncDelayedTask(Stargate.stargate, () -> {
+                passengers.forEach(v::addPassenger);
+                v.setVelocity(newVelocity);
             }, 1L);
-        }
-        else {
-            final Vehicle mc = (Vehicle)exit.getWorld().spawn(exit, vehicle.getClass());
+        } else {
+            final Vehicle mc = exit.getWorld().spawn(exit, vehicle.getClass());
             if (mc instanceof StorageMinecart) {
-                final StorageMinecart smc = (StorageMinecart)mc;
-                smc.getInventory().setContents(((StorageMinecart)vehicle).getInventory().getContents());
+                final StorageMinecart smc = (StorageMinecart) mc;
+                smc.getInventory().setContents(((StorageMinecart) vehicle).getInventory().getContents());
             }
             mc.setVelocity(newVelocity);
             vehicle.remove();
         }
     }
-    
+
     public Location getExit(final Location traveller) {
         Location loc = null;
         if (this.gate.getExit() != null) {
             final Blox exit = this.getBlockAt(this.gate.getExit());
             final int back = this.isBackwards() ? -1 : 1;
             loc = exit.modRelativeLoc(0.0, 0.0, 1.0, traveller.getYaw(), traveller.getPitch(), this.modX * back, 1, this.modZ * back);
-        }
-        else {
+        } else {
             Stargate.log.log(Level.WARNING, "[Stargate] Missing destination point in .gate file {0}", this.gate.getFilename());
         }
         if (loc != null) {
@@ -489,15 +498,15 @@ public final class Portal
         }
         return traveller;
     }
-    
+
     public boolean isChunkLoaded() {
         return this.getWorld().isChunkLoaded(this.topLeft.getBlock().getChunk());
     }
-    
+
     public void loadChunk() {
         this.getWorld().loadChunk(this.topLeft.getBlock().getChunk());
     }
-    
+
     public boolean isVerified() {
         this.verified = true;
         for (final RelativeBlockVector control : this.gate.getControls()) {
@@ -505,15 +514,15 @@ public final class Portal
         }
         return this.verified;
     }
-    
+
     public boolean wasVerified() {
         return this.verified;
     }
-    
+
     public boolean checkIntegrity() {
         return this.gate.matches(this.topLeft, this.modX, this.modZ);
     }
-    
+
     public ArrayList<String> getDestinations(final Player player, final String network) {
         final ArrayList<String> destinations = new ArrayList<>();
         for (final String dest : Portal.allPortalsNet.get(network.toLowerCase())) {
@@ -532,8 +541,7 @@ public final class Portal
             }
             if (player == null) {
                 destinations.add(portal.getName());
-            }
-            else {
+            } else {
                 if (!Stargate.canAccessWorld(player, portal.getWorld().getName())) {
                     continue;
                 }
@@ -545,7 +553,7 @@ public final class Portal
         }
         return destinations;
     }
-    
+
     public boolean activate(final Player player) {
         this.destinations.clear();
         this.destination = "";
@@ -570,7 +578,7 @@ public final class Portal
         this.drawSign();
         return true;
     }
-    
+
     public void deactivate() {
         final StargateDeactivateEvent event = new StargateDeactivateEvent(this);
         Stargate.server.getPluginManager().callEvent(event);
@@ -586,15 +594,15 @@ public final class Portal
         this.activePlayer = null;
         this.drawSign();
     }
-    
+
     public boolean isActive() {
         return this.isFixed() || this.destinations.size() > 0;
     }
-    
+
     public void cycleDestination(final Player player) {
         this.cycleDestination(player, 1);
     }
-    
+
     public void cycleDestination(final Player player, final int dir) {
         Boolean activate = false;
         if (!this.isActive() || this.getActivePlayer() != player) {
@@ -614,8 +622,7 @@ public final class Portal
             index += dir;
             if (index >= this.destinations.size()) {
                 index = 0;
-            }
-            else if (index < 0) {
+            } else if (index < 0) {
                 index = this.destinations.size() - 1;
             }
             this.destination = this.destinations.get(index);
@@ -624,7 +631,7 @@ public final class Portal
         this.openTime = System.currentTimeMillis() / 1000L;
         this.drawSign();
     }
-    
+
     public final void drawSign() {
         final Material sMat = this.id.getBlock().getType();
         if (!Tag.SIGNS.isTagged(sMat) || !Tag.WALL_SIGNS.isTagged(sMat)) {
@@ -632,7 +639,7 @@ public final class Portal
             Stargate.debug("Portal::drawSign", "Block: " + this.id.getBlock().getType() + " @ " + this.id.getBlock().getLocation());
             return;
         }
-        final Sign sign = (Sign)this.id.getBlock().getState();
+        final Sign sign = (Sign) this.id.getBlock().getState();
         Stargate.setLine(sign, 0, "-" + this.name + "-");
         final int max = this.destinations.size() - 1;
         int done = 0;
@@ -642,42 +649,35 @@ public final class Portal
             if (!this.noNetwork) {
                 Stargate.setLine(sign, ++done, "(" + this.network + ")");
             }
-        }
-        else if (this.isBungee()) {
+        } else if (this.isBungee()) {
             Stargate.setLine(sign, ++done, Stargate.getString("bungeeSign"));
             Stargate.setLine(sign, ++done, ">" + this.destination + "<");
             Stargate.setLine(sign, ++done, "[" + this.network + "]");
-        }
-        else if (this.isFixed()) {
+        } else if (this.isFixed()) {
             if (this.isRandom()) {
                 Stargate.setLine(sign, ++done, "> " + Stargate.getString("signRandom") + " <");
-            }
-            else {
+            } else {
                 Stargate.setLine(sign, ++done, ">" + this.destination + "<");
             }
             if (this.noNetwork) {
                 Stargate.setLine(sign, ++done, "");
-            }
-            else {
+            } else {
                 Stargate.setLine(sign, ++done, "(" + this.network + ")");
             }
             final Portal dest = getByName(this.destination, this.network);
             if (dest == null && !this.isRandom()) {
                 Stargate.setLine(sign, ++done, Stargate.getString("signDisconnected"));
-            }
-            else {
+            } else {
                 Stargate.setLine(sign, ++done, "");
             }
-        }
-        else {
+        } else {
             final int index = this.destinations.indexOf(this.destination);
             if (index == max && max > 1 && ++done <= 3) {
                 if (iConomyHandler.useiConomy() && iConomyHandler.freeGatesGreen) {
                     final Portal dest2 = getByName(this.destinations.get(index - 2), this.network);
                     final boolean green = Stargate.isFree(this.activePlayer, this, dest2);
                     Stargate.setLine(sign, done, (green ? ChatColor.DARK_GREEN : "") + this.destinations.get(index - 2));
-                }
-                else {
+                } else {
                     Stargate.setLine(sign, done, this.destinations.get(index - 2));
                 }
             }
@@ -686,8 +686,7 @@ public final class Portal
                     final Portal dest2 = getByName(this.destinations.get(index - 1), this.network);
                     final boolean green = Stargate.isFree(this.activePlayer, this, dest2);
                     Stargate.setLine(sign, done, (green ? ChatColor.DARK_GREEN : "") + this.destinations.get(index - 1));
-                }
-                else {
+                } else {
                     Stargate.setLine(sign, done, this.destinations.get(index - 1));
                 }
             }
@@ -696,8 +695,7 @@ public final class Portal
                     final Portal dest2 = getByName(this.destination, this.network);
                     final boolean green = Stargate.isFree(this.activePlayer, this, dest2);
                     Stargate.setLine(sign, done, (green ? ChatColor.DARK_GREEN : "") + ">" + this.destination + "<");
-                }
-                else {
+                } else {
                     Stargate.setLine(sign, done, " >" + this.destination + "< ");
                 }
             }
@@ -706,8 +704,7 @@ public final class Portal
                     final Portal dest2 = getByName(this.destinations.get(index + 1), this.network);
                     final boolean green = Stargate.isFree(this.activePlayer, this, dest2);
                     Stargate.setLine(sign, done, (green ? ChatColor.DARK_GREEN : "") + this.destinations.get(index + 1));
-                }
-                else {
+                } else {
                     Stargate.setLine(sign, done, this.destinations.get(index + 1));
                 }
             }
@@ -716,8 +713,7 @@ public final class Portal
                     final Portal dest2 = getByName(this.destinations.get(index + 2), this.network);
                     final boolean green = Stargate.isFree(this.activePlayer, this, dest2);
                     Stargate.setLine(sign, done, (green ? ChatColor.DARK_GREEN : "") + this.destinations.get(index + 2));
-                }
-                else {
+                } else {
                     Stargate.setLine(sign, done, this.destinations.get(index + 2));
                 }
             }
@@ -729,7 +725,7 @@ public final class Portal
         }
         sign.update();
     }
-    
+
     public void unregister(final boolean removeAll) {
         Stargate.debug("Unregister", "Unregistering gate " + this.getName());
         this.close(true);
@@ -752,8 +748,7 @@ public final class Portal
         }
         if (this.bungee) {
             Portal.bungeePortals.remove(this.getName().toLowerCase());
-        }
-        else {
+        } else {
             Portal.lookupNamesNet.get(this.getNetwork().toLowerCase()).remove(this.getName().toLowerCase());
             Portal.allPortalsNet.get(this.getNetwork().toLowerCase()).remove(this.getName().toLowerCase());
             for (final String originName : Portal.allPortalsNet.get(this.getNetwork().toLowerCase())) {
@@ -777,7 +772,7 @@ public final class Portal
             }
         }
         if (Tag.WALL_SIGNS.isTagged(this.id.getBlock().getType()) && this.id.getBlock().getState() instanceof Sign) {
-            final Sign sign = (Sign)this.id.getBlock().getState();
+            final Sign sign = (Sign) this.id.getBlock().getState();
             sign.setLine(0, this.getName());
             sign.setLine(1, "");
             sign.setLine(2, "");
@@ -786,17 +781,16 @@ public final class Portal
         }
         saveAllGates(this.getWorld());
     }
-    
+
     private Blox getBlockAt(final RelativeBlockVector vector) {
         return this.topLeft.modRelative(vector.getRight(), vector.getDepth(), vector.getDistance(), this.modX, 1, this.modZ);
     }
-    
+
     private void register() {
         this.fixed = (this.destination.length() > 0 || this.random || this.bungee);
         if (this.isBungee()) {
             Portal.bungeePortals.put(this.getName().toLowerCase(), this);
-        }
-        else {
+        } else {
             if (!Portal.lookupNamesNet.containsKey(this.getNetwork().toLowerCase())) {
                 Stargate.debug("register", "Network " + this.getNetwork() + " not in lookupNamesNet, adding");
                 Portal.lookupNamesNet.put(this.getNetwork().toLowerCase(), new HashMap<>());
@@ -824,16 +818,16 @@ public final class Portal
         }
         Portal.allPortals.add(this);
     }
-    
+
     public static Portal createPortal(final SignChangeEvent event, final Player player) {
         final Blox id = new Blox(event.getBlock());
         final Block idParent = id.getParent();
         if (idParent == null) {
-            Stargate.debug("createPortal","idParent is null");
+            Stargate.debug("createPortal", "idParent is null");
             return null;
         }
         if (Gate.getGatesByControlBlock(idParent).length == 0) {
-            Stargate.debug("createPortal","getGatesByControlBlock(idParent) size = 0");
+            Stargate.debug("createPortal", "getGatesByControlBlock(idParent) size = 0");
             return null;
         }
         if (getByBlock(idParent) != null) {
@@ -901,18 +895,15 @@ public final class Portal
             --modZ;
             rotX = 90.0f;
             facing = 2;
-        }
-        else if (idParent.getX() < id.getBlock().getX()) {
+        } else if (idParent.getX() < id.getBlock().getX()) {
             ++modZ;
             rotX = 270.0f;
             facing = 1;
-        }
-        else if (idParent.getZ() > id.getBlock().getZ()) {
+        } else if (idParent.getZ() > id.getBlock().getZ()) {
             ++modX;
             rotX = 180.0f;
             facing = 4;
-        }
-        else if (idParent.getZ() < id.getBlock().getZ()) {
+        } else if (idParent.getZ() < id.getBlock().getZ()) {
             --modX;
             rotX = 0.0f;
             facing = 3;
@@ -934,8 +925,7 @@ public final class Portal
                                 buttonVector = otherControl;
                             }
                         }
-                    }
-                    else if (otherControl != null) {
+                    } else if (otherControl != null) {
                         buttonVector = vector;
                     }
                     otherControl = vector;
@@ -975,8 +965,7 @@ public final class Portal
                 }
                 Stargate.debug("createPortal", "Creating personal portal");
                 Stargate.sendMessage(player, Stargate.getString("createPersonal"));
-            }
-            else {
+            } else {
                 Stargate.debug("createPortal", "Player does not have access to network");
                 deny = true;
                 denyMsg = Stargate.getString("createNetDeny");
@@ -1033,8 +1022,7 @@ public final class Portal
                 Stargate.sendMessage(player, Stargate.getString("createExists"));
                 return null;
             }
-        }
-        else {
+        } else {
             if (getByName(portal.getName(), portal.getNetwork()) != null) {
                 Stargate.debug("createPortal", "Name Error");
                 Stargate.sendMessage(player, Stargate.getString("createExists"));
@@ -1049,33 +1037,38 @@ public final class Portal
         if (cost > 0) {
             if (!Stargate.chargePlayer(player, null, cost)) {
                 String inFundMsg = Stargate.getString("ecoInFunds");
-                inFundMsg = Stargate.replaceVars(inFundMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(cost), name });
+                inFundMsg = Stargate.replaceVars(inFundMsg, new String[]{"%cost%", "%portal%"}, new String[]{iConomyHandler.format(cost), name});
                 Stargate.sendMessage(player, inFundMsg);
                 Stargate.debug("createPortal", "Insufficient Funds");
                 return null;
             }
             String deductMsg = Stargate.getString("ecoDeduct");
-            deductMsg = Stargate.replaceVars(deductMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(cost), name });
+            deductMsg = Stargate.replaceVars(deductMsg, new String[]{"%cost%", "%portal%"}, new String[]{iConomyHandler.format(cost), name});
             Stargate.sendMessage(player, deductMsg, false);
         }
         if (!alwaysOn) {
             button = topleft.modRelative(buttonVector.getRight(), buttonVector.getDepth(), buttonVector.getDistance() + 1, modX, 1, modZ);
             button.setType(Material.STONE_BUTTON);
+
+            Sign sign = (Sign) id.getBlock().getState();
+
+            Directional directional = (Directional) button.getBlock().getBlockData();
+            directional.setFacing(((Directional) sign.getBlock().getBlockData()).getFacing());
+            button.getBlock().setBlockData(directional);
             portal.setButton(button);
+
         }
         portal.register();
         portal.drawSign();
         if (portal.isRandom() || portal.isBungee()) {
             portal.open(true);
-        }
-        else if (portal.isAlwaysOn()) {
+        } else if (portal.isAlwaysOn()) {
             final Portal dest = getByName(destName, portal.getNetwork());
             if (dest != null) {
                 portal.open(true);
                 dest.drawSign();
             }
-        }
-        else {
+        } else {
             for (final Blox inside : portal.getEntrances()) {
                 inside.setType(portal.getGate().getPortalBlockClosed());
             }
@@ -1104,34 +1097,34 @@ public final class Portal
         saveAllGates(portal.getWorld());
         return portal;
     }
-    
+
     public static Portal getByName(final String name, final String network) {
         if (!Portal.lookupNamesNet.containsKey(network.toLowerCase())) {
             return null;
         }
         return Portal.lookupNamesNet.get(network.toLowerCase()).get(name.toLowerCase());
     }
-    
+
     public static Portal getByEntrance(final Location location) {
         return Portal.lookupEntrances.get(new Blox(location));
     }
-    
+
     public static Portal getByEntrance(final Block block) {
         return Portal.lookupEntrances.get(new Blox(block));
     }
-    
+
     public static Portal getByControl(final Block block) {
         return Portal.lookupControls.get(new Blox(block));
     }
-    
+
     public static Portal getByBlock(final Block block) {
         return Portal.lookupBlocks.get(new Blox(block));
     }
-    
+
     public static Portal getBungeeGate(final String name) {
         return Portal.bungeePortals.get(name.toLowerCase());
     }
-    
+
     public static void saveAllGates(final World world) {
         final String loc = Stargate.getSaveLocation() + "/" + world.getName() + ".db";
         try (final BufferedWriter bw = new BufferedWriter(new FileWriter(loc, false))) {
@@ -1187,12 +1180,11 @@ public final class Portal
                 bw.append(builder.toString());
                 bw.newLine();
             }
-        }
-        catch (Exception e) {
-            Stargate.log.log(Level.SEVERE, "Exception while writing stargates to {0}: {1}", new Object[] { loc, e });
+        } catch (Exception e) {
+            Stargate.log.log(Level.SEVERE, "Exception while writing stargates to {0}: {1}", new Object[]{loc, e});
         }
     }
-    
+
     public static void clearGates() {
         Portal.lookupBlocks.clear();
         Portal.lookupNamesNet.clear();
@@ -1201,7 +1193,7 @@ public final class Portal
         Portal.allPortals.clear();
         Portal.allPortalsNet.clear();
     }
-    
+
     public static void loadAllGates(final World world) {
         final String location = Stargate.getSaveLocation();
         final File db = new File(location, world.getName() + ".db");
@@ -1220,14 +1212,12 @@ public final class Portal
                             final String[] split = line.split(":");
                             if (split.length < 8) {
                                 Stargate.log.log(Level.INFO, "[Stargate] Invalid line - {0}", l);
-                            }
-                            else {
+                            } else {
                                 final String name = split[0];
                                 final Blox sign = new Blox(world, split[1]);
                                 if (!(sign.getBlock().getState() instanceof Sign)) {
-                                    Stargate.log.log(Level.INFO, "[Stargate] Sign on line {0} doesn''t exist. BlockType = {1}", new Object[] { l, sign.getBlock().getType() });
-                                }
-                                else {
+                                    Stargate.log.log(Level.INFO, "[Stargate] Sign on line {0} doesn''t exist. BlockType = {1}", new Object[]{l, sign.getBlock().getType()});
+                                } else {
                                     final Blox button = (split[2].length() > 0) ? new Blox(world, split[2]) : null;
                                     final int modX = Integer.parseInt(split[3]);
                                     final int modZ = Integer.parseInt(split[4]);
@@ -1235,9 +1225,8 @@ public final class Portal
                                     final Blox topLeft = new Blox(world, split[6]);
                                     final Gate gate = split[7].contains(";") ? Gate.getGateByName("nethergate.gate") : Gate.getGateByName(split[7]);
                                     if (gate == null) {
-                                        Stargate.log.log(Level.INFO, "[Stargate] Gate layout on line {0} does not exist [{1}]", new Object[] { l, split[7] });
-                                    }
-                                    else {
+                                        Stargate.log.log(Level.INFO, "[Stargate] Gate layout on line {0} does not exist [{1}]", new Object[]{l, split[7]});
+                                    } else {
                                         final String dest = (split.length > 8) ? split[8] : "";
                                         String network = (split.length > 9) ? split[9] : Stargate.getDefaultNetwork();
                                         if (network.isEmpty()) {
@@ -1253,7 +1242,7 @@ public final class Portal
                                         final boolean noNetwork = split.length > 18 && split[18].equalsIgnoreCase("true");
                                         final boolean random = split.length > 19 && split[19].equalsIgnoreCase("true");
                                         final boolean bungee = split.length > 20 && split[20].equalsIgnoreCase("true");
-                                        final Portal portal = new Portal(topLeft, modX, modZ, rotX, sign, button, dest, name,false, network, gate, owner, hidden, alwaysOn, priv, free, backwards, show, noNetwork, random, bungee);
+                                        final Portal portal = new Portal(topLeft, modX, modZ, rotX, sign, button, dest, name, false, network, gate, owner, hidden, alwaysOn, priv, free, backwards, show, noNetwork, random, bungee);
                                         portal.register();
                                         portal.close(true);
                                     }
@@ -1291,8 +1280,7 @@ public final class Portal
                         ++OpenCount;
                         portal2.open(true);
                         portal2.drawSign();
-                    }
-                    else {
+                    } else {
                         final Portal dest2 = portal2.getDestination();
                         if (dest2 == null) {
                             continue;
@@ -1305,18 +1293,16 @@ public final class Portal
                         dest2.drawSign();
                     }
                 }
-                Stargate.log.log(Level.INFO, "[Stargate] '{'{0}'}' Loaded {1} stargates with {2} set as always-on", new Object[] { world.getName(), portalCount, OpenCount });
-            }
-            catch (Exception e) {
+                Stargate.log.log(Level.INFO, "[Stargate] '{'{0}'}' Loaded {1} stargates with {2} set as always-on", new Object[]{world.getName(), portalCount, OpenCount});
+            } catch (Exception e) {
                 e.printStackTrace();
-                Stargate.log.log(Level.SEVERE, "Exception while reading stargates from {0}: {1}", new Object[] { db.getName(), l });
+                Stargate.log.log(Level.SEVERE, "Exception while reading stargates from {0}: {1}", new Object[]{db.getName(), l});
             }
-        }
-        else {
+        } else {
             Stargate.log.log(Level.INFO, "[Stargate] '{'{0}'}' No stargates for world ", world.getName());
         }
     }
-    
+
     public static void closeAllGates() {
         Stargate.log.info("Closing all stargates.");
         for (final Portal p : Portal.allPortals) {
@@ -1326,16 +1312,16 @@ public final class Portal
             p.close(true);
         }
     }
-    
+
     public static String filterName(final String input) {
         return input.replaceAll("[\\|:#]", "").trim();
     }
-    
+
     @Override
     public String toString() {
         return String.format("Portal [id=%s, network=%s name=%s, type=%s]", this.id, this.network, this.name, this.gate.getFilename());
     }
-    
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -1344,7 +1330,7 @@ public final class Portal
         result = 31 * result + ((this.network == null) ? 0 : this.network.hashCode());
         return result;
     }
-    
+
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
@@ -1356,21 +1342,19 @@ public final class Portal
         if (this.getClass() != obj.getClass()) {
             return false;
         }
-        final Portal other = (Portal)obj;
+        final Portal other = (Portal) obj;
         if (this.name == null) {
             if (other.name != null) {
                 return false;
             }
-        }
-        else if (!this.name.equalsIgnoreCase(other.name)) {
+        } else if (!this.name.equalsIgnoreCase(other.name)) {
             return false;
         }
         if (this.network == null) {
             return other.network == null;
-        }
-        else return this.network.equalsIgnoreCase(other.network);
+        } else return this.network.equalsIgnoreCase(other.network);
     }
-    
+
     static {
         lookupBlocks = new HashMap<>();
         lookupEntrances = new HashMap<>();

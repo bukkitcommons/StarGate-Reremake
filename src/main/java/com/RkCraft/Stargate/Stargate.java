@@ -1,5 +1,9 @@
 package com.RkCraft.Stargate;
 
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.Orientable;
+import org.bukkit.generator.BlockPopulator;
 import org.bukkit.plugin.java.*;
 import org.bukkit.configuration.file.*;
 import java.util.concurrent.*;
@@ -51,7 +55,7 @@ public class Stargate extends JavaPlugin
     public static boolean permDebug;
     public static ConcurrentLinkedQueue<Portal> openList;
     public static ConcurrentLinkedQueue<Portal> activeList;
-    public static Queue<BloxPopulator> blockPopulatorQueue;
+    public static Queue<Map.Entry<BloxPopulator, Axis>> blockPopulatorQueue;
     public static Map<String, String> bungeeQueue;
     
     public void onDisable() {
@@ -1015,7 +1019,8 @@ public class Stargate extends JavaPlugin
                     portal.unregister(true);
                 }
                 else {
-                    Stargate.blockPopulatorQueue.add(new BloxPopulator(new Blox(b), b.getType()));
+
+                    Stargate.blockPopulatorQueue.add(new AbstractMap.SimpleImmutableEntry<>(new BloxPopulator(new Blox(b), b.getType()), null));
                     event.setCancelled(true);
                 }
             }
@@ -1045,11 +1050,19 @@ public class Stargate extends JavaPlugin
         public void run() {
             final long sTime = System.nanoTime();
             while (System.nanoTime() - sTime < 50000000L) {
-                final BloxPopulator b = Stargate.blockPopulatorQueue.poll();
+                final Map.Entry<BloxPopulator,Axis> b = Stargate.blockPopulatorQueue.poll();
                 if (b == null) {
                     return;
                 }
-                b.getBlox().getBlock().setType(b.getMat());
+                b.getKey().getBlox().getBlock().setType(b.getKey().getMat());
+                if(b.getValue() != null){
+                    if(b.getKey().getBlox().getBlock().getBlockData() instanceof Orientable){
+                        Block block = b.getKey().getBlox().getBlock();
+                        Orientable directional = (Orientable) block.getBlockData();
+                        directional.setAxis(b.getValue());
+                        block.setBlockData(directional);
+                    }
+                }
             }
         }
     }
