@@ -5,10 +5,11 @@ import org.bukkit.entity.*;
 import java.io.*;
 import java.util.logging.*;
 import org.bukkit.event.player.*;
+import org.jetbrains.annotations.NotNull;
 
 public class pmListener implements PluginMessageListener
 {
-    public void onPluginMessageReceived(final String channel, final Player unused, final byte[] message) {
+    public void onPluginMessageReceived(@NotNull final String channel, @NotNull final Player unused, @NotNull final byte[] message) {
         if (!Stargate.enableBungee || !channel.equals("BungeeCord")) {
             return;
         }

@@ -93,7 +93,7 @@ public class Stargate extends JavaPlugin
         Stargate.lang = new LangLoader(Stargate.langFolder, Stargate.langName);
         this.migrate();
         this.reloadGates();
-        if (iConomyHandler.setupeConomy(this.pm) && iConomyHandler.economy != null) {
+        if (VaultHandler.setupVault(this.pm) && VaultHandler.economy != null) {
             Stargate.log.log(Level.INFO, "[Stargate] Vault found");
         }
         this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new SGThread(), 0L, 100L);
@@ -124,13 +124,13 @@ public class Stargate extends JavaPlugin
         }
         Stargate.debug = this.newConfig.getBoolean("debug");
         Stargate.permDebug = this.newConfig.getBoolean("permdebug");
-        iConomyHandler.useiConomy = this.newConfig.getBoolean("useiconomy");
-        iConomyHandler.createCost = this.newConfig.getInt("createcost");
-        iConomyHandler.destroyCost = this.newConfig.getInt("destroycost");
-        iConomyHandler.useCost = this.newConfig.getInt("usecost");
-        iConomyHandler.toOwner = this.newConfig.getBoolean("toowner");
-        iConomyHandler.chargeFreeDestination = this.newConfig.getBoolean("chargefreedestination");
-        iConomyHandler.freeGatesGreen = this.newConfig.getBoolean("freegatesgreen");
+        VaultHandler.useVault = this.newConfig.getBoolean("usevault");
+        VaultHandler.createCost = this.newConfig.getInt("createcost");
+        VaultHandler.destroyCost = this.newConfig.getInt("destroycost");
+        VaultHandler.useCost = this.newConfig.getInt("usecost");
+        VaultHandler.toOwner = this.newConfig.getBoolean("toowner");
+        VaultHandler.chargeFreeDestination = this.newConfig.getBoolean("chargefreedestination");
+        VaultHandler.freeGatesGreen = this.newConfig.getBoolean("freegatesgreen");
         this.saveConfig();
     }
     
@@ -309,7 +309,7 @@ public class Stargate extends JavaPlugin
     }
     
     public static boolean isFree(final Player player, final Portal src, final Portal dest) {
-        return src.isFree() || (hasPerm(player, "stargate.free") || hasPerm(player, "stargate.free.use")) || (dest != null && !iConomyHandler.chargeFreeDestination && dest.isFree());
+        return src.isFree() || (hasPerm(player, "stargate.free") || hasPerm(player, "stargate.free.use")) || (dest != null && !VaultHandler.chargeFreeDestination && dest.isFree());
     }
     
     public static boolean canSee(final Player player, final Portal portal) {
@@ -360,17 +360,17 @@ public class Stargate extends JavaPlugin
     }
     
     public static boolean chargePlayer(final Player player, final OfflinePlayer target, final int cost) {
-        return cost == 0 || !iConomyHandler.useiConomy() || iConomyHandler.chargePlayer(player, target, cost);
+        return cost == 0 || !VaultHandler.useVault() || VaultHandler.chargePlayer(player, target, cost);
     }
     
     public static int getUseCost(final Player player, final Portal src, final Portal dest) {
-        if (!iConomyHandler.useiConomy()) {
+        if (!VaultHandler.useVault()) {
             return 0;
         }
         if (src.isFree()) {
             return 0;
         }
-        if (dest != null && !iConomyHandler.chargeFreeDestination && dest.isFree()) {
+        if (dest != null && !VaultHandler.chargeFreeDestination && dest.isFree()) {
             return 0;
         }
         if (src.getGate().getToOwner() && src.getOwner().getUniqueId().equals(player.getUniqueId())) {
@@ -383,7 +383,7 @@ public class Stargate extends JavaPlugin
     }
     
     public static int getCreateCost(final Player player, final Gate gate) {
-        if (!iConomyHandler.useiConomy()) {
+        if (!VaultHandler.useVault()) {
             return 0;
         }
         if (hasPerm(player, "stargate.free") || hasPerm(player, "stargate.free.create")) {
@@ -393,7 +393,7 @@ public class Stargate extends JavaPlugin
     }
     
     public static int getDestroyCost(final Player player, final Gate gate) {
-        if (!iConomyHandler.useiConomy()) {
+        if (!VaultHandler.useVault()) {
             return 0;
         }
         if (hasPerm(player, "stargate.free") || hasPerm(player, "stargate.free.destroy")) {
@@ -465,11 +465,11 @@ public class Stargate extends JavaPlugin
             this.reloadGates();
             Stargate.lang.setLang(Stargate.langName);
             Stargate.lang.reload();
-            if (iConomyHandler.useiConomy && iConomyHandler.economy == null && iConomyHandler.setupeConomy(this.pm) && iConomyHandler.economy != null) {
+            if (VaultHandler.useVault && VaultHandler.economy == null && VaultHandler.setupVault(this.pm) && VaultHandler.economy != null) {
                 Stargate.log.log(Level.INFO, "[Stargate] Vault found");
             }
-            if (!iConomyHandler.useiConomy) {
-                iConomyHandler.economy = null;
+            if (!VaultHandler.useVault) {
+                VaultHandler.economy = null;
             }
             if (oldEnableBungee != Stargate.enableBungee) {
                 if (Stargate.enableBungee) {
@@ -553,13 +553,13 @@ public class Stargate extends JavaPlugin
                         return;
                     }
                     String deductMsg = Stargate.getString("ecoDeduct");
-                    deductMsg = Stargate.replaceVars(deductMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(cost), portal.getName() });
+                    deductMsg = Stargate.replaceVars(deductMsg, new String[] { "%cost%", "%portal%" }, new String[] { VaultHandler.format(cost), portal.getName() });
                     Stargate.sendMessage(player, deductMsg, false);
                     if (target != null) {
                         final Player p = target.getPlayer();
                         if (p != null) {
                             String obtainedMsg = Stargate.getString("ecoObtain");
-                            obtainedMsg = Stargate.replaceVars(obtainedMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(cost), portal.getName() });
+                            obtainedMsg = Stargate.replaceVars(obtainedMsg, new String[] { "%cost%", "%portal%" }, new String[] { VaultHandler.format(cost), portal.getName() });
                             Stargate.sendMessage(p, obtainedMsg, false);
                         }
                     }
@@ -604,6 +604,7 @@ public class Stargate extends JavaPlugin
                 return;
             }
             final Location from = event.getFrom();
+            //noinspection ConstantConditions
             if (from == null) {
                 Stargate.debug("onPlayerPortal", "From location is null. Stupid Bukkit");
                 return;
@@ -677,13 +678,13 @@ public class Stargate extends JavaPlugin
                     return;
                 }
                 String deductMsg = Stargate.getString("ecoDeduct");
-                deductMsg = Stargate.replaceVars(deductMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(cost), portal.getName() });
+                deductMsg = Stargate.replaceVars(deductMsg, new String[] { "%cost%", "%portal%" }, new String[] { VaultHandler.format(cost), portal.getName() });
                 Stargate.sendMessage(player, deductMsg, false);
                 if (target != null) {
                     final Player p = target.getPlayer();
                     if (p != null) {
                         String obtainedMsg = Stargate.getString("ecoObtain");
-                        obtainedMsg = Stargate.replaceVars(obtainedMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(cost), portal.getName() });
+                        obtainedMsg = Stargate.replaceVars(obtainedMsg, new String[] { "%cost%", "%portal%" }, new String[] { VaultHandler.format(cost), portal.getName() });
                         Stargate.sendMessage(p, obtainedMsg, false);
                     }
                 }
@@ -922,12 +923,12 @@ public class Stargate extends JavaPlugin
                 }
                 if (cost > 0) {
                     String deductMsg = Stargate.getString("ecoDeduct");
-                    deductMsg = Stargate.replaceVars(deductMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(cost), portal.getName() });
+                    deductMsg = Stargate.replaceVars(deductMsg, new String[] { "%cost%", "%portal%" }, new String[] { VaultHandler.format(cost), portal.getName() });
                     Stargate.sendMessage(player, deductMsg, false);
                 }
-                else if (cost < 0) {
+                else {
                     String refundMsg = Stargate.getString("ecoRefund");
-                    refundMsg = Stargate.replaceVars(refundMsg, new String[] { "%cost%", "%portal%" }, new String[] { iConomyHandler.format(-cost), portal.getName() });
+                    refundMsg = Stargate.replaceVars(refundMsg, new String[] { "%cost%", "%portal%" }, new String[] { VaultHandler.format(-cost), portal.getName() });
                     Stargate.sendMessage(player, refundMsg, false);
                 }
             }
@@ -1030,14 +1031,14 @@ public class Stargate extends JavaPlugin
     {
         @EventHandler
         public void onPluginEnable(final PluginEnableEvent event) {
-            if (iConomyHandler.setupVault(event.getPlugin())) {
-                Stargate.log.log(Level.INFO, "[Stargate] Vault v{0} found", iConomyHandler.vault.getDescription().getVersion());
+            if (VaultHandler.setupVault(event.getPlugin())) {
+                Stargate.log.log(Level.INFO, "[Stargate] Vault v{0} found", VaultHandler.vault.getDescription().getVersion());
             }
         }
         
         @EventHandler
         public void onPluginDisable(final PluginDisableEvent event) {
-            if (iConomyHandler.checkLost(event.getPlugin())) {
+            if (VaultHandler.checkLost(event.getPlugin())) {
                 Stargate.log.info("[Stargate] Vault plugin lost.");
             }
         }

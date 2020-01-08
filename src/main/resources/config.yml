@@ -39,7 +39,7 @@ handleVehicles: true
 sortLists: false
 protectEntrance: false
 signColor: BLACK
-useiconomy: false
+usevault: false
 createcost: 0
 destroycost: 0
 usecost: 0
