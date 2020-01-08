@@ -1195,7 +1195,7 @@ public final class Portal {
     }
 
     public static void loadAllGates(final World world) {
-        final String location = Stargate.getSaveLocation();
+        final File location = Stargate.getSaveLocation();
         final File db = new File(location, world.getName() + ".db");
         if (db.exists()) {
             int l = 0;

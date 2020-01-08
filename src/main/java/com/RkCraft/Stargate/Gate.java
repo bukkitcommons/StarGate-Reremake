@@ -97,8 +97,8 @@ public class Gate
         this.controls = controlList.toArray(this.controls);
     }
     
-    public void save(final String gateFolder) {
-        try (final BufferedWriter bw = new BufferedWriter(new FileWriter(gateFolder + this.filename))) {
+    public void save(final File gateFolder) {
+        try (final BufferedWriter bw = new BufferedWriter(new FileWriter(gateFolder))) {
             this.writeConfig(bw, "portal-open", String.valueOf(this.portalBlockOpen));
             this.writeConfig(bw, "portal-closed", String.valueOf(this.portalBlockClosed));
             if (this.useCost != -1) {
@@ -122,10 +122,9 @@ public class Gate
                 bw.newLine();
             }
             bw.newLine();
-            for (final Character[] arr$2 : this.layout) {
-                final Character[] layout1 = arr$2;
-                for (final Character symbol : arr$2) {
-                    bw.append(symbol);
+            for (final Character[] y : this.layout) {
+                for (final Character x : y) {
+                    bw.append(x);
                 }
                 bw.newLine();
             }
@@ -252,15 +251,11 @@ public class Gate
                     if (type != portalBlockClosed && type != portalBlockOpen) {
                         // Special case for water gates
                         if (portalBlockOpen == Material.WATER ) {
-                            if (type == Material.WATER) {
                                 continue;
-                            }
                         }
                         // Special case for lava gates
                         if (portalBlockOpen == Material.LAVA) {
-                            if (type == Material.LAVA) {
                                 continue;
-                            }
                         }
                         Stargate.debug("Gate::Matches", "Entrance/Exit Material Mismatch: " + type);
                         return false;
@@ -286,7 +281,7 @@ public class Gate
         }
         Gate.controlBlocks.get(blockID).add(gate);
     }
-    
+
     public static Gate loadGate(final File file) {
         Scanner scanner = null;
         boolean designing = false;
@@ -295,9 +290,10 @@ public class Gate
         final HashMap<String, String> config = new HashMap<>();
         final HashSet<Material> frameTypes = new HashSet<>();
         int cols = 0;
-        types.put('.', new DataMaterial(-2));
-        types.put('*', new DataMaterial(-4));
-        types.put(' ', new DataMaterial(-1));
+        types.put('.', new DataMaterial(ENTRANCE));
+        types.put('*', new DataMaterial(EXIT));
+        types.put(' ', new DataMaterial(ANYTHING));
+        types.put('-', new DataMaterial(CONTROL));
         try {
             scanner = new Scanner(file);
             while (scanner.hasNextLine()) {
@@ -326,8 +322,11 @@ public class Gate
                     if (key.length() == 1) {
                         final Character symbol2 = key.charAt(0);
                         final Material id = Material.matchMaterial(value);
-                        types.put(symbol2, new DataMaterial(id));
-                        frameTypes.add(id);
+                        if(id!=null){
+                            types.put(symbol2, new DataMaterial(id));
+                            frameTypes.add(id);
+                        }
+
                     }
                     else {
                         config.put(key, value);
@@ -345,29 +344,21 @@ public class Gate
                 scanner.close();
             }
         }
-//        final Character[][] layout = new Character[design.size()][cols];
-//        for (int y = 0; y < design.size(); ++y) {
-//            final ArrayList<Character> row2 = design.get(y);
-//            final Character[] result = new Character[cols];
-//            for (int x = 0; x < cols; ++x) {
-//                if (x < row2.size()) {
-//                    result[x] = row2.get(x);
-//                }
-//                else {
-//                    result[x] = ' ';
-//                }
-//            }
-//            layout[y] = result;
-//        }
+        final Character[][] layout = new Character[design.size()][cols];
+        for (int y = 0; y < design.size(); ++y) {
+            final ArrayList<Character> row2 = design.get(y);
+            final Character[] result = new Character[cols];
+            for (int x = 0; x < cols; ++x) {
+                if (x < row2.size()) {
+                    result[x] = row2.get(x);
+                }
+                else {
+                    result[x] = ' ';
+                }
+            }
+            layout[y] = result;
+        }
 
-        //final Material Obsidian = Material.OBSIDIAN;
-        final Character[][] layout = { { ' ', 'X', 'X', ' ' }, { 'X', '.', '.', 'X' }, { '-', '.', '.', '-' }, { 'X', '*', '.', 'X' }, { ' ', 'X', 'X', ' ' } };
-        //final HashMap<Character, DataMaterial> types = new HashMap<>();
-        //types.put('.', new DataMaterial(ENTRANCE));
-        //types.put('*', new DataMaterial(EXIT));
-        //types.put(' ', new DataMaterial(ANYTHING));
-        //types.put('X', new DataMaterial(Obsidian));
-       // types.put('-', new DataMaterial(Obsidian));
         final Gate gate = new Gate(file.getName(), layout, types);
         gate.portalBlockOpen = Material.matchMaterial(readConfig(config, gate, file, "portal-open", gate.portalBlockOpen.name()));
         gate.portalBlockClosed = Material.matchMaterial(readConfig(config, gate, file, "portal-closed", gate.portalBlockClosed.name()));
@@ -380,7 +371,7 @@ public class Gate
             return null;
         }
         Gate.frameBlocks.addAll(frameTypes);
-        gate.save(file.getParent() + "/");
+        gate.save(file);
         return gate;
     }
     
@@ -407,16 +398,15 @@ public class Gate
         return def;
     }
     public static void loadGates(final File gateFolder) {
-        final File dir = new File(gateFolder);
         File[] files;
-        if (dir.exists()) {
-            files = dir.listFiles(new StargateFilenameFilter());
+        if (gateFolder.exists()) {
+            files = gateFolder.listFiles(new StargateFilenameFilter());
         }
         else {
             files = new File[0];
         }
-        if (files.length == 0) {
-            dir.mkdir();
+        if ((files != null ? files.length : 0) == 0) {
+            gateFolder.mkdir();
             populateDefaults(gateFolder);
         }
         else {

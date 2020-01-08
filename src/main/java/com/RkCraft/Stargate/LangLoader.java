@@ -4,17 +4,17 @@ import lombok.Cleanup;
 import lombok.SneakyThrows;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.logging.*;
 import java.io.*;
 import java.util.*;
 
-public class LangLoader
-{
+public class LangLoader {
     private final File datFolder;
     private String lang;
     private HashMap<String, String> strList;
     private final HashMap<String, String> defList;
-    
+
     public LangLoader(final File datFolder, final String lang) {
         this.lang = lang;
         this.datFolder = datFolder;
@@ -24,22 +24,21 @@ public class LangLoader
         }
         this.updateLanguage(lang);
         this.strList = this.load(lang);
-        final InputStream is = Stargate.class.getResourceAsStream("resources/" + lang + ".txt");
+        final InputStream is = Stargate.class.getResourceAsStream( lang + ".txt");
         if (is != null) {
             this.defList = this.load("en", is);
-        }
-        else {
+        } else {
             this.defList = null;
             Stargate.log.severe("[Stargate] Error loading backup language. There may be missing text ingame");
         }
     }
-    
+
     public boolean reload() {
         this.updateLanguage(this.lang);
         this.strList = this.load(this.lang);
         return true;
     }
-    
+
     public String getString(final String name) {
         String val = this.strList.get(name);
         if (val == null && this.defList != null) {
@@ -50,16 +49,16 @@ public class LangLoader
         }
         return val;
     }
-    
+
     public void setLang(final String lang) {
         this.lang = lang;
     }
-    
+
     private void updateLanguage(final String lang) {
         final ArrayList<String> keyList = new ArrayList<>();
         final ArrayList<String> valList = new ArrayList<>();
         final HashMap<String, String> curLang = this.load(lang);
-        final InputStream is = Stargate.class.getResourceAsStream("resources/" + lang + ".txt");
+        final InputStream is = Stargate.class.getResourceAsStream( lang + ".txt");
         if (is == null) {
             return;
         }
@@ -80,16 +79,14 @@ public class LangLoader
                         keyList.add("");
                         valList.add("");
                         line = br.readLine();
-                    }
-                    else {
+                    } else {
                         final String key = line.substring(0, eq);
                         final String val = line.substring(eq);
                         if (curLang.get(key) == null) {
                             keyList.add(key);
                             valList.add(val);
                             updated = true;
-                        }
-                        else {
+                        } else {
                             keyList.add(key);
                             valList.add("=" + curLang.get(key));
                             curLang.remove(key);
@@ -99,7 +96,7 @@ public class LangLoader
                 }
             }
             fos = new FileOutputStream(this.datFolder + lang + ".txt");
-            final OutputStreamWriter out = new OutputStreamWriter(fos,  StandardCharsets.UTF_8);
+            final OutputStreamWriter out = new OutputStreamWriter(fos, StandardCharsets.UTF_8);
             try (final BufferedWriter bw = new BufferedWriter(out)) {
                 for (int i = 0; i < keyList.size(); ++i) {
                     bw.write(keyList.get(i) + valList.get(i));
@@ -111,33 +108,34 @@ public class LangLoader
                     bw.newLine();
                 }
             }
-        }
-        catch (Exception ignored) {}
-        finally {
+        } catch (Exception ignored) {
+        } finally {
             if (fos != null) {
                 try {
                     fos.close();
+                } catch (Exception ignored) {
                 }
-                catch (Exception ignored) {}
             }
         }
         if (updated) {
             Stargate.log.log(Level.INFO, "[Stargate] Your language file ({0}.txt) has been updated", lang);
         }
     }
-    
     private HashMap<String, String> load(final String lang) {
         return this.load(lang, null);
     }
     @SneakyThrows
     private HashMap<String, String> load(final String lang, final InputStream is) {
         final HashMap<String, String> strings = new HashMap<>();
-        @Cleanup
-        InputStreamReader isr = null;
+        InputStreamReader isr;
         if(is == null){
             //Load from file
-            @Cleanup
-            FileInputStream fileInputStream = new FileInputStream(new File(this.datFolder , lang + ".txt"));
+
+            File languageFile = new File(this.datFolder , lang + ".txt");
+            if(!languageFile.exists()){
+                Files.copy(Stargate.instance.getResource("en.txt"),languageFile.toPath());
+            }
+            FileInputStream fileInputStream = new FileInputStream(languageFile);
             isr = new InputStreamReader(fileInputStream, StandardCharsets.UTF_8);
         }else{
             isr = new InputStreamReader(is, StandardCharsets.UTF_8);
