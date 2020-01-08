@@ -10,7 +10,6 @@ import java.util.*;
 
 public class LangLoader
 {
-    private final String UTF8_BOM = "\ufeff";
     private final File datFolder;
     private String lang;
     private HashMap<String, String> strList;
