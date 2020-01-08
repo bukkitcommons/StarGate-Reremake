@@ -1,5 +1,9 @@
 package com.RkCraft.Stargate;
 
+import lombok.Cleanup;
+import lombok.SneakyThrows;
+
+import java.nio.charset.StandardCharsets;
 import java.util.logging.*;
 import java.io.*;
 import java.util.*;
@@ -7,12 +11,12 @@ import java.util.*;
 public class LangLoader
 {
     private final String UTF8_BOM = "\ufeff";
-    private final String datFolder;
+    private final File datFolder;
     private String lang;
     private HashMap<String, String> strList;
     private final HashMap<String, String> defList;
     
-    public LangLoader(final String datFolder, final String lang) {
+    public LangLoader(final File datFolder, final String lang) {
         this.lang = lang;
         this.datFolder = datFolder;
         final File tmp = new File(datFolder, lang + ".txt");
@@ -53,8 +57,8 @@ public class LangLoader
     }
     
     private void updateLanguage(final String lang) {
-        final ArrayList<String> keyList = new ArrayList<String>();
-        final ArrayList<String> valList = new ArrayList<String>();
+        final ArrayList<String> keyList = new ArrayList<>();
+        final ArrayList<String> valList = new ArrayList<>();
         final HashMap<String, String> curLang = this.load(lang);
         final InputStream is = Stargate.class.getResourceAsStream("resources/" + lang + ".txt");
         if (is == null) {
@@ -81,7 +85,7 @@ public class LangLoader
                     else {
                         final String key = line.substring(0, eq);
                         final String val = line.substring(eq);
-                        if (curLang == null || curLang.get(key) == null) {
+                        if (curLang.get(key) == null) {
                             keyList.add(key);
                             valList.add(val);
                             updated = true;
@@ -96,7 +100,7 @@ public class LangLoader
                 }
             }
             fos = new FileOutputStream(this.datFolder + lang + ".txt");
-            final OutputStreamWriter out = new OutputStreamWriter(fos, "UTF8");
+            final OutputStreamWriter out = new OutputStreamWriter(fos,  StandardCharsets.UTF_8);
             try (final BufferedWriter bw = new BufferedWriter(out)) {
                 for (int i = 0; i < keyList.size(); ++i) {
                     bw.write(keyList.get(i) + valList.get(i));
@@ -109,13 +113,13 @@ public class LangLoader
                 }
             }
         }
-        catch (Exception ex) {}
+        catch (Exception ignored) {}
         finally {
             if (fos != null) {
                 try {
                     fos.close();
                 }
-                catch (Exception ex2) {}
+                catch (Exception ignored) {}
             }
         }
         if (updated) {
@@ -126,49 +130,36 @@ public class LangLoader
     private HashMap<String, String> load(final String lang) {
         return this.load(lang, null);
     }
-    
+    @SneakyThrows
     private HashMap<String, String> load(final String lang, final InputStream is) {
-        final HashMap<String, String> strings = new HashMap<String, String>();
-        FileInputStream fis = null;
+        final HashMap<String, String> strings = new HashMap<>();
+        @Cleanup
         InputStreamReader isr = null;
-        try {
-            if (is == null) {
-                fis = new FileInputStream(this.datFolder + lang + ".txt");
-                isr = new InputStreamReader(fis, "UTF8");
-            }
-            else {
-                isr = new InputStreamReader(is, "UTF8");
-            }
-            final BufferedReader br = new BufferedReader(isr);
-            String line = br.readLine();
-            boolean firstLine = true;
-            while (line != null) {
-                if (firstLine) {
-                    line = this.removeUTF8BOM(line);
-                }
-                firstLine = false;
-                final int eq = line.indexOf(61);
-                if (eq == -1) {
-                    line = br.readLine();
-                }
-                else {
-                    final String key = line.substring(0, eq);
-                    final String val = line.substring(eq + 1);
-                    strings.put(key, val);
-                    line = br.readLine();
-                }
-            }
+        if(is == null){
+            //Load from file
+            @Cleanup
+            FileInputStream fileInputStream = new FileInputStream(new File(this.datFolder , lang + ".txt"));
+            isr = new InputStreamReader(fileInputStream, StandardCharsets.UTF_8);
+        }else{
+            isr = new InputStreamReader(is, StandardCharsets.UTF_8);
         }
-        catch (Exception ex) {
-            return null;
-        }
-        finally {
-            if (fis != null) {
-                try {
-                    fis.close();
-                }
-                catch (Exception ex2) {}
+        final BufferedReader br = new BufferedReader(isr);
+        String line = br.readLine();
+        int cursorLine = 1;
+        while (line != null) {
+            if(cursorLine == 1) {
+                line = this.removeUTF8BOM(line);
             }
+            final int eq = line.indexOf(61);
+            if (eq == -1) {
+                line = br.readLine();
+            }else {
+                final String key = line.substring(0, eq);
+                final String val = line.substring(eq + 1);
+                strings.put(key, val);
+                line = br.readLine();
+            }
+            cursorLine++;
         }
         return strings;
     }

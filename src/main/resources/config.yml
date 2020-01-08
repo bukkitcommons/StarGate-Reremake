@@ -29,8 +29,6 @@
 # debug - Debug -- Only enable if you have issues, massive console output
 # permdebug - This will output any and all Permissions checks to console, used for permissions debugging (Requires debug: true)
 CheckUpdates: true
-portal-folder: plugins/Stargate/portals/
-gate-folder: plugins/Stargate/gates/
 default-gate-network: central
 destroyexplosion: false
 maxgates: 0

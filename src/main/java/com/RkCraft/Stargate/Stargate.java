@@ -1,14 +1,11 @@
 package com.RkCraft.Stargate;
 
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.Orientable;
-import org.bukkit.generator.BlockPopulator;
 import org.bukkit.plugin.java.*;
 import org.bukkit.configuration.file.*;
 import java.util.concurrent.*;
 import java.util.logging.*;
-import org.bukkit.plugin.messaging.*;
+
 import org.bukkit.plugin.*;
 import org.bukkit.command.*;
 import org.bukkit.event.vehicle.*;
@@ -25,19 +22,18 @@ import org.bukkit.event.world.*;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.server.*;
 
-import static org.bukkit.event.Event.Result.DENY;
-
 public class Stargate extends JavaPlugin
 {
+    public static Stargate instance;
     public static Logger log;
     private FileConfiguration newConfig;
     private PluginManager pm;
     public static Server server;
     public static Stargate stargate;
     private static LangLoader lang;
-    private static String portalFolder;
-    private static String gateFolder;
-    private static String langFolder;
+    private static File portalFolder;
+    private static File gateFolder;
+    private static File langFolder;
     private static String defNetwork;
     private static boolean destroyExplosion;
     public static int maxGates;
@@ -57,7 +53,12 @@ public class Stargate extends JavaPlugin
     public static ConcurrentLinkedQueue<Portal> activeList;
     public static Queue<Map.Entry<BloxPopulator, Axis>> blockPopulatorQueue;
     public static Map<String, String> bungeeQueue;
-    
+
+    @Override
+    public void onLoad() {
+        instance = this;
+    }
+
     public void onDisable() {
         Portal.closeAllGates();
         Portal.clearGates();
@@ -74,9 +75,9 @@ public class Stargate extends JavaPlugin
 //        if (this.getConfig().getBoolean("CheckUpdates")) {
 //            this.CheckUpdate();
 //        }
-        Stargate.portalFolder = this.getDataFolder().getPath().replaceAll("\\\\", "/") + "/portals/";
-        Stargate.gateFolder = this.getDataFolder().getPath().replaceAll("\\\\", "/") + "/gates/";
-        Stargate.langFolder = this.getDataFolder().getPath().replaceAll("\\\\", "/") + "/lang/";
+        Stargate.portalFolder = new File(this.getDataFolder() ,"portals");
+        Stargate.gateFolder = new File(this.getDataFolder() ,"gates");
+        Stargate.langFolder = new File(this.getDataFolder() ,"lang");
         Stargate.log.log(Level.INFO, "{0} v.{1} is enabled.", new Object[] { pdfFile.getName(), pdfFile.getVersion() });
         this.pm.registerEvents(new pListener(), this);
         this.pm.registerEvents(new bListener(), this);
@@ -103,8 +104,6 @@ public class Stargate extends JavaPlugin
         this.reloadConfig();
         this.newConfig = this.getConfig();
         this.newConfig.options().copyDefaults(true);
-        Stargate.portalFolder = this.newConfig.getString("portal-folder");
-        Stargate.gateFolder = this.newConfig.getString("gate-folder");
         Stargate.defNetwork = this.newConfig.getString("default-gate-network").trim();
         Stargate.destroyExplosion = this.newConfig.getBoolean("destroyexplosion");
         Stargate.maxGates = this.newConfig.getInt("maxgates");
@@ -150,7 +149,7 @@ public class Stargate extends JavaPlugin
     }
     
     private void migrate() {
-        final File newPortalDir = new File(Stargate.portalFolder);
+        final File newPortalDir = Stargate.portalFolder;
         if (!newPortalDir.exists()) {
             newPortalDir.mkdirs();
         }
@@ -165,7 +164,7 @@ public class Stargate extends JavaPlugin
         }
         final File oldDir = new File("stargates");
         if (oldDir.exists()) {
-            final File newDir = new File(Stargate.gateFolder);
+            final File newDir = Stargate.gateFolder;
             if (!newDir.exists()) {
                 newDir.mkdirs();
             }
@@ -206,11 +205,11 @@ public class Stargate extends JavaPlugin
         sign.setLine(index, Stargate.signColor + text);
     }
     
-    public static String getSaveLocation() {
+    public static File getSaveLocation() {
         return Stargate.portalFolder;
     }
     
-    public static String getGateFolder() {
+    public static File getGateFolder() {
         return Stargate.gateFolder;
     }
     

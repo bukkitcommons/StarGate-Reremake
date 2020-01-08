@@ -6,8 +6,6 @@ import java.util.*;
 import java.io.*;
 import org.bukkit.block.*;
 
-import javax.xml.crypto.Data;
-
 public class Gate
 {
     public static final int ANYTHING = -1;
@@ -408,7 +406,7 @@ public class Gate
         }
         return def;
     }
-    public static void loadGates(final String gateFolder) {
+    public static void loadGates(final File gateFolder) {
         final File dir = new File(gateFolder);
         File[] files;
         if (dir.exists()) {
@@ -431,7 +429,7 @@ public class Gate
         }
     }
     
-    public static void populateDefaults(final String gateFolder) {
+    public static void populateDefaults(final File gateFolder) {
         final Material Obsidian = Material.OBSIDIAN;
         final Character[][] layout = { { ' ', 'X', 'X', ' ' }, { 'X', '.', '.', 'X' }, { '-', '.', '.', '-' }, { 'X', '*', '.', 'X' }, { ' ', 'X', 'X', ' ' } };
         final HashMap<Character, DataMaterial> types = new HashMap<>();
