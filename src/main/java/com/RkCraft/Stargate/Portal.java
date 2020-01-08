@@ -673,7 +673,7 @@ public final class Portal {
         } else {
             final int index = this.destinations.indexOf(this.destination);
             if (index == max && max > 1 && ++done <= 3) {
-                if (iConomyHandler.useiConomy() && iConomyHandler.freeGatesGreen) {
+                if (VaultHandler.useVault() && VaultHandler.freeGatesGreen) {
                     final Portal dest2 = getByName(this.destinations.get(index - 2), this.network);
                     final boolean green = Stargate.isFree(this.activePlayer, this, dest2);
                     Stargate.setLine(sign, done, (green ? ChatColor.DARK_GREEN : "") + this.destinations.get(index - 2));
@@ -682,7 +682,7 @@ public final class Portal {
                 }
             }
             if (index > 0 && ++done <= 3) {
-                if (iConomyHandler.useiConomy() && iConomyHandler.freeGatesGreen) {
+                if (VaultHandler.useVault() && VaultHandler.freeGatesGreen) {
                     final Portal dest2 = getByName(this.destinations.get(index - 1), this.network);
                     final boolean green = Stargate.isFree(this.activePlayer, this, dest2);
                     Stargate.setLine(sign, done, (green ? ChatColor.DARK_GREEN : "") + this.destinations.get(index - 1));
@@ -691,7 +691,7 @@ public final class Portal {
                 }
             }
             if (++done <= 3) {
-                if (iConomyHandler.useiConomy() && iConomyHandler.freeGatesGreen) {
+                if (VaultHandler.useVault() && VaultHandler.freeGatesGreen) {
                     final Portal dest2 = getByName(this.destination, this.network);
                     final boolean green = Stargate.isFree(this.activePlayer, this, dest2);
                     Stargate.setLine(sign, done, (green ? ChatColor.DARK_GREEN : "") + ">" + this.destination + "<");
@@ -700,7 +700,7 @@ public final class Portal {
                 }
             }
             if (max >= index + 1 && ++done <= 3) {
-                if (iConomyHandler.useiConomy() && iConomyHandler.freeGatesGreen) {
+                if (VaultHandler.useVault() && VaultHandler.freeGatesGreen) {
                     final Portal dest2 = getByName(this.destinations.get(index + 1), this.network);
                     final boolean green = Stargate.isFree(this.activePlayer, this, dest2);
                     Stargate.setLine(sign, done, (green ? ChatColor.DARK_GREEN : "") + this.destinations.get(index + 1));
@@ -709,7 +709,7 @@ public final class Portal {
                 }
             }
             if (max >= index + 2 && ++done <= 3) {
-                if (iConomyHandler.useiConomy() && iConomyHandler.freeGatesGreen) {
+                if (VaultHandler.useVault() && VaultHandler.freeGatesGreen) {
                     final Portal dest2 = getByName(this.destinations.get(index + 2), this.network);
                     final boolean green = Stargate.isFree(this.activePlayer, this, dest2);
                     Stargate.setLine(sign, done, (green ? ChatColor.DARK_GREEN : "") + this.destinations.get(index + 2));
@@ -1037,13 +1037,13 @@ public final class Portal {
         if (cost > 0) {
             if (!Stargate.chargePlayer(player, null, cost)) {
                 String inFundMsg = Stargate.getString("ecoInFunds");
-                inFundMsg = Stargate.replaceVars(inFundMsg, new String[]{"%cost%", "%portal%"}, new String[]{iConomyHandler.format(cost), name});
+                inFundMsg = Stargate.replaceVars(inFundMsg, new String[]{"%cost%", "%portal%"}, new String[]{VaultHandler.format(cost), name});
                 Stargate.sendMessage(player, inFundMsg);
                 Stargate.debug("createPortal", "Insufficient Funds");
                 return null;
             }
             String deductMsg = Stargate.getString("ecoDeduct");
-            deductMsg = Stargate.replaceVars(deductMsg, new String[]{"%cost%", "%portal%"}, new String[]{iConomyHandler.format(cost), name});
+            deductMsg = Stargate.replaceVars(deductMsg, new String[]{"%cost%", "%portal%"}, new String[]{VaultHandler.format(cost), name});
             Stargate.sendMessage(player, deductMsg, false);
         }
         if (!alwaysOn) {

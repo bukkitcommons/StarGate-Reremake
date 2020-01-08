@@ -208,21 +208,21 @@ public class Gate
     
     public int getUseCost() {
         if (this.useCost < 0) {
-            return iConomyHandler.useCost;
+            return VaultHandler.useCost;
         }
         return this.useCost;
     }
     
     public Integer getCreateCost() {
         if (this.createCost < 0) {
-            return iConomyHandler.createCost;
+            return VaultHandler.createCost;
         }
         return this.createCost;
     }
     
     public Integer getDestroyCost() {
         if (this.destroyCost < 0) {
-            return iConomyHandler.destroyCost;
+            return VaultHandler.destroyCost;
         }
         return this.destroyCost;
     }
@@ -374,7 +374,7 @@ public class Gate
         gate.useCost = readConfig(config, gate, file, "usecost", -1);
         gate.destroyCost = readConfig(config, gate, file, "destroycost", -1);
         gate.createCost = readConfig(config, gate, file, "createcost", -1);
-        gate.toOwner = (config.containsKey("toowner") ? Boolean.parseBoolean(config.get("toowner")) : iConomyHandler.toOwner);
+        gate.toOwner = (config.containsKey("toowner") ? Boolean.parseBoolean(config.get("toowner")) : VaultHandler.toOwner);
         if (gate.getControls().length != 2) {
             Stargate.log.log(Level.SEVERE, "Could not load Gate {0} - Gates must have exactly 2 control points.", file.getName());
             return null;
