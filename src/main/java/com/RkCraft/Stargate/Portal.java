@@ -322,10 +322,15 @@ public final class Portal {
         for (final Blox inside : this.getEntrances()) {
             Sign sign = (Sign) id.getBlock().getState();
             Directional directionl = (Directional) sign.getBlock().getBlockData();
-            if(directionl.getFacing() == BlockFace.WEST || directionl.getFacing()==BlockFace.EAST){
-                Stargate.blockPopulatorQueue.add(new AbstractMap.SimpleImmutableEntry<>(new BloxPopulator(inside, openType),Axis.Z));
-            }else{
-                Stargate.blockPopulatorQueue.add(new AbstractMap.SimpleImmutableEntry<>(new BloxPopulator(inside, openType),null));
+            if (directionl.getFacing() == BlockFace.WEST || directionl.getFacing() == BlockFace.EAST) {
+                //Stargate.blockPopulatorQueue.add(new AbstractMap.SimpleImmutableEntry<>(new BloxPopulator(inside, openType), Axis.Z));
+                inside.setType(openType);
+                Orientable orientable = (Orientable)inside.getBlock().getBlockData();
+                orientable.setAxis(Axis.Z);
+                inside.getBlock().setBlockData(orientable);
+            } else {
+                //Stargate.blockPopulatorQueue.add(new AbstractMap.SimpleImmutableEntry<>(new BloxPopulator(inside, openType), null));
+                inside.setType(openType);
             }
         }
         this.isOpen = true;
@@ -361,14 +366,8 @@ public final class Portal {
         }
         final Material closedType = this.gate.getPortalBlockClosed();
         for (final Blox inside : this.getEntrances()) {
-            Sign sign = (Sign) id.getBlock().getState();
-            Directional directionl = (Directional) sign.getBlock().getBlockData();
-            if(directionl.getFacing() == BlockFace.WEST || directionl.getFacing()==BlockFace.EAST){
-                Stargate.blockPopulatorQueue.add(new AbstractMap.SimpleImmutableEntry<>(new BloxPopulator(inside, closedType),Axis.Z));
-            }else{
-                Stargate.blockPopulatorQueue.add(new AbstractMap.SimpleImmutableEntry<>(new BloxPopulator(inside, closedType),null));
-            }
-
+            inside.getBlock().setType(closedType);
+            Stargate.debug("close","Gate closed! Breaking a portal block!");
         }
         this.player = null;
         this.isOpen = false;
@@ -427,7 +426,20 @@ public final class Portal {
         }
         if (event == null) {
             exit.setYaw(this.getRotation());
-            player.teleport(exit);
+
+            List<Entity> passengers = player.getPassengers();
+            if(passengers.isEmpty()){
+                player.teleport(exit);
+            }else{
+                passengers.forEach(Entity::eject);
+                player.eject();
+                player.teleport(exit);
+                for (Entity entity : passengers){
+                   entity.teleport(exit);
+                }
+                passengers.forEach(player::addPassenger);
+            }
+
         } else {
             event.setTo(exit);
         }
@@ -436,47 +448,18 @@ public final class Portal {
     public void teleport(final Vehicle vehicle) {
         final Location traveller = new Location(this.world, vehicle.getLocation().getX(), vehicle.getLocation().getY(), vehicle.getLocation().getZ());
         final Location exit = this.getExit(traveller);
-        final double velocity = vehicle.getVelocity().length();
-        vehicle.setVelocity(new Vector());
-        final Vector newVelocity = new Vector();
-        switch (this.id.getBlock().getData()) {
-            case 2: {
-                newVelocity.setZ(-1);
-                break;
-            }
-            case 3: {
-                newVelocity.setZ(1);
-                break;
-            }
-            case 4: {
-                newVelocity.setX(-1);
-                break;
-            }
-            case 5: {
-                newVelocity.setX(1);
-                break;
-            }
-        }
-        newVelocity.multiply(velocity);
+        vehicle.getLocation().setY(vehicle.getLocation().getY()+180);
         final List<Entity> passengers = vehicle.getPassengers();
-        if (passengers.isEmpty()) {
-            final Vehicle v = exit.getWorld().spawn(exit, vehicle.getClass());
+
+
+        if(passengers.isEmpty()){
+            vehicle.teleport(exit);
+        }else{
+            passengers.forEach(Entity::eject);
             vehicle.eject();
-            vehicle.remove();
-            passengers.forEach((entity -> entity.teleport(exit)));
-            //passengers.teleport(exit);
-            Stargate.server.getScheduler().scheduleSyncDelayedTask(Stargate.stargate, () -> {
-                passengers.forEach(v::addPassenger);
-                v.setVelocity(newVelocity);
-            }, 1L);
-        } else {
-            final Vehicle mc = exit.getWorld().spawn(exit, vehicle.getClass());
-            if (mc instanceof StorageMinecart) {
-                final StorageMinecart smc = (StorageMinecart) mc;
-                smc.getInventory().setContents(((StorageMinecart) vehicle).getInventory().getContents());
-            }
-            mc.setVelocity(newVelocity);
-            vehicle.remove();
+            vehicle.teleport(exit);
+            passengers.forEach(entity -> entity.teleport(exit));
+            passengers.forEach(vehicle::addPassenger);
         }
     }
 
