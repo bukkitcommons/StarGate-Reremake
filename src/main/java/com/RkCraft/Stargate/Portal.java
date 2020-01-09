@@ -319,6 +319,9 @@ public final class Portal {
         }
         this.getWorld().loadChunk(this.getWorld().getChunkAt(this.topLeft.getBlock()));
         final Material openType = this.gate.getPortalBlockOpen();
+        for(final Blox inside : this.getEntrances()){
+            inside.setType(Material.GLOWSTONE);
+        }
         for (final Blox inside : this.getEntrances()) {
             Sign sign = (Sign) id.getBlock().getState();
             Directional directionl = (Directional) sign.getBlock().getBlockData();
