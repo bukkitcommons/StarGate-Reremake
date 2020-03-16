@@ -1034,6 +1034,9 @@ public final class Portal {
         }
         if (!alwaysOn) {
             button = topleft.modRelative(buttonVector.getRight(), buttonVector.getDepth(), buttonVector.getDistance() + 1, modX, 1, modZ);
+            if(button.getType() != Material.AIR && button.getType() != Material.CAVE_AIR &&  button.getType() != Material.VOID_AIR){
+                return null;
+            }
             button.setType(Material.STONE_BUTTON);
 
             Sign sign = (Sign) id.getBlock().getState();
