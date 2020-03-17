@@ -1,4 +1,6 @@
-name: StarGate
+name: Stargate
 version: ${project.version}
 main: com.RkCraft.Stargate.Stargate
 api-version: 1.13
+softdepend:
+  - Vault

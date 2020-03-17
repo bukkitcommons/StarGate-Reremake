@@ -12,10 +12,8 @@ import org.bukkit.block.data.Powerable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Vehicle;
-import org.bukkit.entity.minecart.StorageMinecart;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.util.Vector;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -319,7 +317,7 @@ public final class Portal {
         }
         this.getWorld().loadChunk(this.getWorld().getChunkAt(this.topLeft.getBlock()));
         final Material openType = this.gate.getPortalBlockOpen();
-        for(final Blox inside : this.getEntrances()){
+        for (final Blox inside : this.getEntrances()) {
             inside.setType(Material.GLOWSTONE);
         }
         for (final Blox inside : this.getEntrances()) {
@@ -328,7 +326,7 @@ public final class Portal {
             if (directionl.getFacing() == BlockFace.WEST || directionl.getFacing() == BlockFace.EAST) {
                 //Stargate.blockPopulatorQueue.add(new AbstractMap.SimpleImmutableEntry<>(new BloxPopulator(inside, openType), Axis.Z));
                 inside.setType(openType);
-                Orientable orientable = (Orientable)inside.getBlock().getBlockData();
+                Orientable orientable = (Orientable) inside.getBlock().getBlockData();
                 orientable.setAxis(Axis.Z);
                 inside.getBlock().setBlockData(orientable);
             } else {
@@ -370,7 +368,7 @@ public final class Portal {
         final Material closedType = this.gate.getPortalBlockClosed();
         for (final Blox inside : this.getEntrances()) {
             inside.getBlock().setType(closedType);
-            Stargate.debug("close","Gate closed! Breaking a portal block!");
+            Stargate.debug("close", "Gate closed! Breaking a portal block!");
         }
         this.player = null;
         this.isOpen = false;
@@ -431,14 +429,14 @@ public final class Portal {
             exit.setYaw(this.getRotation());
 
             List<Entity> passengers = player.getPassengers();
-            if(passengers.isEmpty()){
+            if (passengers.isEmpty()) {
                 player.teleport(exit);
-            }else{
+            } else {
                 passengers.forEach(Entity::eject);
                 player.eject();
                 player.teleport(exit);
-                for (Entity entity : passengers){
-                   entity.teleport(exit);
+                for (Entity entity : passengers) {
+                    entity.teleport(exit);
                 }
                 passengers.forEach(player::addPassenger);
             }
@@ -451,13 +449,13 @@ public final class Portal {
     public void teleport(final Vehicle vehicle) {
         final Location traveller = new Location(this.world, vehicle.getLocation().getX(), vehicle.getLocation().getY(), vehicle.getLocation().getZ());
         final Location exit = this.getExit(traveller);
-        vehicle.getLocation().setY(vehicle.getLocation().getY()+180);
+        vehicle.getLocation().setY(vehicle.getLocation().getY() + 180);
         final List<Entity> passengers = vehicle.getPassengers();
 
 
-        if(passengers.isEmpty()){
+        if (passengers.isEmpty()) {
             vehicle.teleport(exit);
-        }else{
+        } else {
             passengers.forEach(Entity::eject);
             vehicle.eject();
             vehicle.teleport(exit);
@@ -1034,7 +1032,7 @@ public final class Portal {
         }
         if (!alwaysOn) {
             button = topleft.modRelative(buttonVector.getRight(), buttonVector.getDepth(), buttonVector.getDistance() + 1, modX, 1, modZ);
-            if(button.getType() != Material.AIR && button.getType() != Material.CAVE_AIR &&  button.getType() != Material.VOID_AIR){
+            if (button.getType() != Material.AIR && button.getType() != Material.CAVE_AIR && button.getType() != Material.VOID_AIR && button.getType() != Material.STONE_BUTTON) {
                 return null;
             }
             button.setType(Material.STONE_BUTTON);
